@@ -225,6 +225,7 @@ async function loadNotificationsFromFirebase() {
 
 // Set up real-time listener for new notifications
 let lastNotificationTime = Date.now(); // Track when we started listening
+let notificationListener = null; // Store listener reference
 
 function setupNotificationListener() {
     const { database, firebaseDB, currentUser } = getFirebase();
@@ -237,24 +238,36 @@ function setupNotificationListener() {
     const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
     const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
     
-    // Update the timestamp to NOW (to ignore existing notifications)
+    // Update the timestamp to NOW
     lastNotificationTime = Date.now();
-    console.log('Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
+    console.log('ðŸŽ§ Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
+    console.log('ðŸ‘‚ Listening for user:', userId);
     
-    // Listen for new notifications added AFTER this point
-    firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
+    // Remove existing listener if any
+    if (notificationListener) {
+        firebaseDB.off(notificationsRef, 'child_added', notificationListener);
+    }
+    
+    // Listen for new children added
+    notificationListener = firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
         const notification = snapshot.val();
         const notificationId = snapshot.key;
         
-        // Only show notifications that are created AFTER we started listening
+        console.log('ðŸ“© Child added event:', {
+            id: notificationId,
+            timestamp: new Date(notification.timestamp).toLocaleString(),
+            listenerTime: new Date(lastNotificationTime).toLocaleString(),
+            diff: notification.timestamp - lastNotificationTime
+        });
+        
+        // Only process notifications created AFTER listener was set up
         const isNew = notification.timestamp > lastNotificationTime;
         
         if (isNew && !notification.read) {
-            console.log('ðŸ”” NEW notification received!', {
+            console.log('ðŸ”” NEW notification detected!', {
                 type: notification.type,
                 message: notification.message,
-                timestamp: new Date(notification.timestamp).toLocaleTimeString(),
-                listenerStarted: new Date(lastNotificationTime).toLocaleTimeString()
+                from: notification.user?.displayName
             });
             
             // Show browser push notification
@@ -276,16 +289,21 @@ function setupNotificationListener() {
                 const userName = notification.user?.displayName || 'Alguien';
                 const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
                 
+                console.log('ðŸ“¢ Sending push notification:', title, userName);
+                
                 window.sendPushNotification(title, {
                     body: notification.message,
                     icon: userPhoto,
                     data: { url: window.location.origin }
                 });
+            } else {
+                console.log('âš ï¸ Push notification not sent. Permission:', Notification.permission);
             }
             
             // Add to UI if notifications panel exists
             const notificationsList = document.getElementById('notifications-list');
             if (notificationsList) {
+                console.log('âž• Adding notification to UI');
                 // Remove "no notifications" message if exists
                 const emptyMessage = notificationsList.querySelector('p');
                 if (emptyMessage) {
@@ -298,16 +316,16 @@ function setupNotificationListener() {
                 updateNotificationBadge();
             }
         } else {
-            console.log('Ignoring old/read notification:', {
+            console.log('â­ï¸ Skipping notification (old or read):', {
                 isNew,
                 read: notification.read,
-                notifTime: new Date(notification.timestamp).toLocaleTimeString(),
-                listenerTime: new Date(lastNotificationTime).toLocaleTimeString()
+                timestamp: notification.timestamp,
+                listenerTime: lastNotificationTime
             });
         }
     });
     
-    console.log('âœ… Notification listener set up successfully for user:', userId);
+    console.log('âœ… Notification listener set up successfully');
 }
 
 // Helper function to render a notification
@@ -385,4 +403,3 @@ function getTimeAgo(timestamp) {
 // Expose to window
 window.loadNotificationsFromFirebase = loadNotificationsFromFirebase;
 window.addNotification = addNotification;
-
