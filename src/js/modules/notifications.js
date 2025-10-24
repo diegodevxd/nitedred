@@ -1,6 +1,15 @@
 // Notifications Functions
 let notificationsVisible = false;
-let unreadNotifications = 5;
+let unreadNotifications = 0;
+
+// Helper to access Firebase from window
+function getFirebase() {
+    return {
+        database: window.database,
+        firebaseDB: window.firebaseDB,
+        currentUser: window.currentUser
+    };
+}
 
 function toggleNotifications() {
     const panel = document.getElementById('notifications-panel');
@@ -16,6 +25,9 @@ function toggleNotifications() {
 }
 
 function markAsRead(notificationElement) {
+    const { database, firebaseDB, currentUser } = getFirebase();
+    const notificationId = notificationElement.dataset.notificationId;
+    
     const dot = notificationElement.querySelector('.w-2.h-2.bg-blue-400');
     if (dot) {
         dot.remove();
@@ -24,6 +36,15 @@ function markAsRead(notificationElement) {
         
         // Add read state styling
         notificationElement.classList.add('opacity-75');
+        
+        // Update read status in Firebase
+        if (database && firebaseDB && currentUser && notificationId) {
+            const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+            const notifRef = firebaseDB.ref(database, `notifications/${userId}/${notificationId}`);
+            firebaseDB.update(notifRef, { read: true }).catch(err => {
+                console.error('Error updating notification read status:', err);
+            });
+        }
     }
 }
 
@@ -52,11 +73,13 @@ function viewAllNotifications() {
     toggleNotifications();
 }
 
-function addNotification(type, message, user = null) {
+function addNotification(type, message, user = null, targetUserId = null) {
+    const { database, firebaseDB, currentUser } = getFirebase();
+    
     const notificationsList = document.getElementById('notifications-list');
     
     // Remove "no notifications" message if exists
-    const emptyMessage = notificationsList.querySelector('p');
+    const emptyMessage = notificationsList?.querySelector('p');
     if (emptyMessage) {
         emptyMessage.remove();
     }
@@ -88,26 +111,50 @@ function addNotification(type, message, user = null) {
             iconBg = 'from-gray-400 to-gray-600';
     }
     
-    const notificationDiv = document.createElement('div');
-    notificationDiv.className = 'notification-item bg-white bg-opacity-10 rounded-xl p-3 cursor-pointer hover:bg-opacity-20 transition-all slide-in';
-    notificationDiv.onclick = () => markAsRead(notificationDiv);
+    const notificationData = {
+        id: Date.now().toString(),
+        type: type,
+        message: message,
+        user: user,
+        timestamp: Date.now(),
+        read: false
+    };
     
-    notificationDiv.innerHTML = `
-        <div class="flex items-start">
-            <div class="w-8 h-8 bg-gradient-to-r ${iconBg} rounded-full mr-3 flex items-center justify-center flex-shrink-0">
-                <i class="${iconClass} text-white text-sm"></i>
-            </div>
-            <div class="flex-1">
-                <p class="text-white text-sm">${message}</p>
-                <p class="text-white text-opacity-60 text-xs mt-1">ahora</p>
-            </div>
-            <div class="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
-        </div>
-    `;
+    // Save to Firebase if targetUserId is provided
+    if (database && firebaseDB && targetUserId) {
+        const userId = targetUserId.replace(/[.@]/g, '_');
+        const notifRef = firebaseDB.ref(database, `notifications/${userId}/${notificationData.id}`);
+        firebaseDB.set(notifRef, notificationData).catch(err => {
+            console.error('Error saving notification to Firebase:', err);
+        });
+    }
     
-    notificationsList.insertBefore(notificationDiv, notificationsList.firstChild);
-    unreadNotifications++;
-    updateNotificationBadge();
+    // Only render if it's for current user
+    if (!targetUserId || (currentUser && (targetUserId === currentUser.uid || targetUserId === currentUser.email))) {
+        const notificationDiv = document.createElement('div');
+        notificationDiv.className = 'notification-item bg-white bg-opacity-10 rounded-xl p-3 cursor-pointer hover:bg-opacity-20 transition-all slide-in';
+        notificationDiv.dataset.notificationId = notificationData.id;
+        notificationDiv.onclick = () => markAsRead(notificationDiv);
+        
+        notificationDiv.innerHTML = `
+            <div class="flex items-start">
+                <div class="w-8 h-8 bg-gradient-to-r ${iconBg} rounded-full mr-3 flex items-center justify-center flex-shrink-0">
+                    <i class="${iconClass} text-white text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-white text-sm">${message}</p>
+                    <p class="text-white text-opacity-60 text-xs mt-1">ahora</p>
+                </div>
+                <div class="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+            </div>
+        `;
+        
+        if (notificationsList) {
+            notificationsList.insertBefore(notificationDiv, notificationsList.firstChild);
+        }
+        unreadNotifications++;
+        updateNotificationBadge();
+    }
 }
 
 // Close notifications when clicking outside
@@ -119,3 +166,192 @@ document.addEventListener('click', function(event) {
         toggleNotifications();
     }
 });
+
+// Load notifications from Firebase
+async function loadNotificationsFromFirebase() {
+    const { database, firebaseDB, currentUser } = getFirebase();
+    
+    if (!database || !firebaseDB || !currentUser) {
+        console.log('Firebase not initialized or no user logged in');
+        return;
+    }
+    
+    try {
+        const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+        const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
+        const snapshot = await firebaseDB.get(notificationsRef);
+        
+        if (snapshot.exists()) {
+            const firebaseNotifications = snapshot.val();
+            const notificationsList = document.getElementById('notifications-list');
+            
+            // Clear existing notifications
+            if (notificationsList) {
+                notificationsList.innerHTML = '';
+            }
+            
+            // Convert to array and sort by timestamp (newest first)
+            const notificationsArray = Object.values(firebaseNotifications).sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Reset unread count
+            unreadNotifications = 0;
+            
+            // Render each notification
+            notificationsArray.forEach(notification => {
+                renderNotification(notification);
+                if (!notification.read) {
+                    unreadNotifications++;
+                }
+            });
+            
+            updateNotificationBadge();
+            console.log(`Loaded ${notificationsArray.length} notifications from Firebase`);
+            
+            // Set up real-time listener for NEW notifications
+            setupNotificationListener();
+        } else {
+            console.log('No notifications found in Firebase');
+            // Set up listener even if no notifications exist
+            setupNotificationListener();
+        }
+    } catch (error) {
+        console.error('Error loading notifications from Firebase:', error);
+    }
+}
+
+// Set up real-time listener for new notifications
+function setupNotificationListener() {
+    const { database, firebaseDB, currentUser } = getFirebase();
+    
+    if (!database || !firebaseDB || !currentUser) {
+        console.log('Cannot setup notification listener - Firebase not ready');
+        return;
+    }
+    
+    const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+    const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
+    
+    // Listen for new notifications added
+    firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
+        const notification = snapshot.val();
+        const notificationId = snapshot.key;
+        
+        // Check if this is a NEW notification (less than 5 seconds old)
+        const isNew = (Date.now() - notification.timestamp) < 5000;
+        
+        if (isNew && !notification.read) {
+            console.log('NEW notification received!', notification);
+            
+            // Show browser push notification
+            if (window.sendPushNotification) {
+                let title = 'CryptoSocial';
+                let emoji = '🔔';
+                
+                switch(notification.type) {
+                    case 'like':
+                        title = '💖 Nuevo Like';
+                        break;
+                    case 'comment':
+                        title = '💬 Nuevo Comentario';
+                        break;
+                    case 'follow':
+                        title = '👤 Nuevo Seguidor';
+                        break;
+                }
+                
+                const userName = notification.user?.displayName || 'Alguien';
+                const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
+                
+                window.sendPushNotification(title, {
+                    body: notification.message,
+                    icon: userPhoto,
+                    data: { url: window.location.origin }
+                });
+            }
+            
+            // Add to UI
+            renderNotification(notification);
+            unreadNotifications++;
+            updateNotificationBadge();
+        }
+    });
+    
+    console.log('Notification listener set up successfully');
+}
+
+// Helper function to render a notification
+function renderNotification(notificationData) {
+    const notificationsList = document.getElementById('notifications-list');
+    if (!notificationsList) return;
+    
+    const { type, message, timestamp, read, id } = notificationData;
+    
+    let iconClass, iconBg;
+    switch(type) {
+        case 'like':
+            iconClass = 'fas fa-heart';
+            iconBg = 'from-pink-400 to-purple-500';
+            break;
+        case 'comment':
+            iconClass = 'fas fa-comment';
+            iconBg = 'from-blue-400 to-green-500';
+            break;
+        case 'follow':
+            iconClass = 'fas fa-user-plus';
+            iconBg = 'from-green-400 to-teal-500';
+            break;
+        case 'share':
+            iconClass = 'fas fa-share';
+            iconBg = 'from-purple-400 to-pink-500';
+            break;
+        case 'crypto':
+            iconClass = 'fab fa-bitcoin';
+            iconBg = 'from-yellow-400 to-orange-500';
+            break;
+        default:
+            iconClass = 'fas fa-bell';
+            iconBg = 'from-gray-400 to-gray-600';
+    }
+    
+    // Calculate time ago
+    const timeAgo = getTimeAgo(timestamp);
+    
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = 'notification-item bg-white bg-opacity-10 rounded-xl p-3 cursor-pointer hover:bg-opacity-20 transition-all';
+    notificationDiv.dataset.notificationId = id;
+    notificationDiv.onclick = () => markAsRead(notificationDiv);
+    
+    notificationDiv.innerHTML = `
+        <div class="flex items-start">
+            <div class="w-8 h-8 bg-gradient-to-r ${iconBg} rounded-full mr-3 flex items-center justify-center flex-shrink-0">
+                <i class="${iconClass} text-white text-sm"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-white text-sm">${message}</p>
+                <p class="text-white text-opacity-60 text-xs mt-1">${timeAgo}</p>
+            </div>
+            ${!read ? '<div class="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>' : ''}
+        </div>
+    `;
+    
+    notificationsList.appendChild(notificationDiv);
+}
+
+// Helper function to calculate time ago
+function getTimeAgo(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'ahora';
+    if (minutes < 60) return `hace ${minutes}m`;
+    if (hours < 24) return `hace ${hours}h`;
+    return `hace ${days}d`;
+}
+
+// Expose to window
+window.loadNotificationsFromFirebase = loadNotificationsFromFirebase;
+window.addNotification = addNotification;
+
