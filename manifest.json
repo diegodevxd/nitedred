@@ -1,0 +1,44 @@
+{
+  "name": "CryptoSocial - NitedCrypto",
+  "short_name": "CryptoSocial",
+  "description": "Red social dedicada a la comunidad de criptomonedas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#8b5cf6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/src/css/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/src/css/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "finance", "news"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "url": "/",
+      "description": "Ver feed de publicaciones"
+    },
+    {
+      "name": "Mensajes",
+      "url": "/?section=messages",
+      "description": "Ver mensajes"
+    },
+    {
+      "name": "Perfil",
+      "url": "/?section=profile",
+      "description": "Ver perfil"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}
