@@ -401,5 +401,10 @@ function getTimeAgo(timestamp) {
 }
 
 // Expose to window
+console.log('ðŸ“¢ Exposing notification functions to window');
 window.loadNotificationsFromFirebase = loadNotificationsFromFirebase;
 window.addNotification = addNotification;
+console.log('âœ… Notification functions exposed:', {
+    loadNotificationsFromFirebase: typeof window.loadNotificationsFromFirebase,
+    addNotification: typeof window.addNotification
+});
