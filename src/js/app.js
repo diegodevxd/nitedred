@@ -35,6 +35,10 @@ window.onFirebaseAuthStateChanged = function(user) {
         }
         // Load posts from Firebase
         setTimeout(() => loadPostsFromFirebase(), 800);
+        // Load stories from Firebase
+        setTimeout(() => loadStoriesFromFirebase(), 900);
+        // Load following/followers from Firebase
+        setTimeout(() => loadFollowDataFromFirebase(), 1000);
     } else {
         // User signed out, go to login
         showSection('login');
@@ -336,8 +340,61 @@ function addStoryToStorage(storyData) {
         const stories = savedStories ? JSON.parse(savedStories) : [];
         stories.push(storyData);
         localStorage.setItem('nitedcrypto_stories', JSON.stringify(stories));
+        
+        // Save to Firebase
+        if (database && firebaseDB) {
+            const storyRef = firebaseDB.ref(database, `stories/${storyData.id}`);
+            firebaseDB.set(storyRef, storyData).catch(err => {
+                console.error('Error saving story to Firebase:', err);
+            });
+        }
     } catch (error) {
         console.error('Error adding story:', error);
+    }
+}
+
+// Load stories from Firebase
+async function loadStoriesFromFirebase() {
+    if (!database || !firebaseDB) return;
+    
+    try {
+        const storiesRef = firebaseDB.ref(database, 'stories');
+        const snapshot = await firebaseDB.get(storiesRef);
+        
+        if (snapshot.exists()) {
+            const firebaseStories = [];
+            const now = Date.now();
+            
+            snapshot.forEach((childSnapshot) => {
+                const story = childSnapshot.val();
+                // Only load stories less than 24 hours old
+                if (now - story.timestamp < 86400000) {
+                    firebaseStories.push(story);
+                }
+            });
+            
+            // Get local stories
+            const localStories = JSON.parse(localStorage.getItem('nitedcrypto_stories') || '[]');
+            
+            // Merge and remove duplicates
+            const allStoriesMap = new Map();
+            localStories.forEach(s => allStoriesMap.set(s.id, s));
+            firebaseStories.forEach(s => allStoriesMap.set(s.id, s));
+            
+            const mergedStories = Array.from(allStoriesMap.values())
+                .filter(s => now - s.timestamp < 86400000) // Filter 24h
+                .sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Save to localStorage
+            localStorage.setItem('nitedcrypto_stories', JSON.stringify(mergedStories));
+            
+            // Reload display
+            loadSavedStories();
+            
+            console.log(`Loaded ${firebaseStories.length} stories from Firebase`);
+        }
+    } catch (error) {
+        console.error('Error loading stories from Firebase:', error);
     }
 }
 
@@ -966,6 +1023,14 @@ function toggleFollow(userId, userName, button) {
         }
         
         localStorage.setItem('nitedcrypto_following', JSON.stringify(followingData));
+        
+        // Save to Firebase
+        if (database && firebaseDB) {
+            const followingRef = firebaseDB.ref(database, `following/${currentUserId}`);
+            firebaseDB.set(followingRef, followingData[currentUserId]).catch(err => {
+                console.error('Error saving following to Firebase:', err);
+            });
+        }
     } catch (error) {
         console.error('Error toggling follow:', error);
         showToast('Error al procesar la acción');
@@ -1006,8 +1071,57 @@ function updateFollowersList(targetUserId, currentUserId, isFollowing) {
         }
         
         localStorage.setItem('nitedcrypto_followers', JSON.stringify(followersData));
+        
+        // Save to Firebase
+        if (database && firebaseDB) {
+            const followersRef = firebaseDB.ref(database, `followers/${targetUserId}`);
+            firebaseDB.set(followersRef, followersData[targetUserId]).catch(err => {
+                console.error('Error saving followers to Firebase:', err);
+            });
+        }
     } catch (error) {
         console.error('Error updating followers list:', error);
+    }
+}
+
+// Load following/followers from Firebase
+async function loadFollowDataFromFirebase() {
+    if (!database || !firebaseDB || !currentUser) return;
+    
+    const currentUserId = currentUser.uid || currentUser.email;
+    
+    try {
+        // Load following
+        const followingRef = firebaseDB.ref(database, `following/${currentUserId}`);
+        const followingSnapshot = await firebaseDB.get(followingRef);
+        
+        if (followingSnapshot.exists()) {
+            const firebaseFollowing = followingSnapshot.val();
+            const localFollowing = JSON.parse(localStorage.getItem('nitedcrypto_following') || '{}');
+            
+            // Merge
+            localFollowing[currentUserId] = firebaseFollowing;
+            localStorage.setItem('nitedcrypto_following', JSON.stringify(localFollowing));
+            
+            console.log(`Loaded ${firebaseFollowing.length} following from Firebase`);
+        }
+        
+        // Load followers
+        const followersRef = firebaseDB.ref(database, `followers/${currentUserId}`);
+        const followersSnapshot = await firebaseDB.get(followersRef);
+        
+        if (followersSnapshot.exists()) {
+            const firebaseFollowers = followersSnapshot.val();
+            const localFollowers = JSON.parse(localStorage.getItem('nitedcrypto_followers') || '{}');
+            
+            // Merge
+            localFollowers[currentUserId] = firebaseFollowers;
+            localStorage.setItem('nitedcrypto_followers', JSON.stringify(localFollowers));
+            
+            console.log(`Loaded ${firebaseFollowers.length} followers from Firebase`);
+        }
+    } catch (error) {
+        console.error('Error loading follow data from Firebase:', error);
     }
 }
 
@@ -1017,15 +1131,14 @@ function getFollowingList() {
     
     try {
         const following = localStorage.getItem('nitedcrypto_following');
-        const users = localStorage.getItem('nitedcrypto_users');
         
-        if (following && users) {
+        if (following) {
             const followingData = JSON.parse(following);
-            const usersData = JSON.parse(users);
             const currentUserId = currentUser.uid || currentUser.email;
-            const followingIds = followingData[currentUserId] || [];
+            const followingList = followingData[currentUserId] || [];
             
-            return followingIds.map(id => usersData[id]).filter(user => user);
+            // Already in object format {id, name, photoURL}
+            return followingList.filter(user => user && user.id);
         }
     } catch (error) {
         console.error('Error getting following list:', error);
@@ -1226,6 +1339,8 @@ window.renderPost = renderPost;
 window.showSection = showSection;
 window.deletePost = deletePost;
 window.loadPostsFromFirebase = loadPostsFromFirebase;
+window.loadStoriesFromFirebase = loadStoriesFromFirebase;
+window.loadFollowDataFromFirebase = loadFollowDataFromFirebase;
 
 // Migrate following/followers data from string format to object format
 function migrateFollowingData() {
