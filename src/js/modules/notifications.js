@@ -69,7 +69,7 @@ function updateNotificationBadge() {
 }
 
 function viewAllNotifications() {
-    showToast('Función "Ver todas" próximamente disponible');
+    showToast('FunciÃ³n "Ver todas" prÃ³ximamente disponible');
     toggleNotifications();
 }
 
@@ -178,12 +178,16 @@ async function loadNotificationsFromFirebase() {
     
     try {
         const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+        console.log('ðŸ“¥ Loading notifications for user:', userId);
+        
         const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
         const snapshot = await firebaseDB.get(notificationsRef);
         
         if (snapshot.exists()) {
             const firebaseNotifications = snapshot.val();
             const notificationsList = document.getElementById('notifications-list');
+            
+            console.log('Found notifications in Firebase:', Object.keys(firebaseNotifications).length);
             
             // Clear existing notifications
             if (notificationsList) {
@@ -205,21 +209,23 @@ async function loadNotificationsFromFirebase() {
             });
             
             updateNotificationBadge();
-            console.log(`Loaded ${notificationsArray.length} notifications from Firebase`);
+            console.log(`âœ… Loaded ${notificationsArray.length} notifications (${unreadNotifications} unread)`);
             
             // Set up real-time listener for NEW notifications
             setupNotificationListener();
         } else {
-            console.log('No notifications found in Firebase');
+            console.log('âš ï¸ No notifications found in Firebase for user:', userId);
             // Set up listener even if no notifications exist
             setupNotificationListener();
         }
     } catch (error) {
-        console.error('Error loading notifications from Firebase:', error);
+        console.error('âŒ Error loading notifications from Firebase:', error);
     }
 }
 
 // Set up real-time listener for new notifications
+let lastNotificationTime = Date.now(); // Track when we started listening
+
 function setupNotificationListener() {
     const { database, firebaseDB, currentUser } = getFirebase();
     
@@ -231,31 +237,39 @@ function setupNotificationListener() {
     const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
     const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
     
-    // Listen for new notifications added
+    // Update the timestamp to NOW (to ignore existing notifications)
+    lastNotificationTime = Date.now();
+    console.log('Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
+    
+    // Listen for new notifications added AFTER this point
     firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
         const notification = snapshot.val();
         const notificationId = snapshot.key;
         
-        // Check if this is a NEW notification (less than 5 seconds old)
-        const isNew = (Date.now() - notification.timestamp) < 5000;
+        // Only show notifications that are created AFTER we started listening
+        const isNew = notification.timestamp > lastNotificationTime;
         
         if (isNew && !notification.read) {
-            console.log('NEW notification received!', notification);
+            console.log('ðŸ”” NEW notification received!', {
+                type: notification.type,
+                message: notification.message,
+                timestamp: new Date(notification.timestamp).toLocaleTimeString(),
+                listenerStarted: new Date(lastNotificationTime).toLocaleTimeString()
+            });
             
             // Show browser push notification
-            if (window.sendPushNotification) {
+            if (window.sendPushNotification && Notification.permission === 'granted') {
                 let title = 'CryptoSocial';
-                let emoji = '🔔';
                 
                 switch(notification.type) {
                     case 'like':
-                        title = '💖 Nuevo Like';
+                        title = 'ðŸ’– Nuevo Like';
                         break;
                     case 'comment':
-                        title = '💬 Nuevo Comentario';
+                        title = 'ðŸ’¬ Nuevo Mensaje';
                         break;
                     case 'follow':
-                        title = '👤 Nuevo Seguidor';
+                        title = 'ðŸ‘¤ Nuevo Seguidor';
                         break;
                 }
                 
@@ -269,14 +283,31 @@ function setupNotificationListener() {
                 });
             }
             
-            // Add to UI
-            renderNotification(notification);
-            unreadNotifications++;
-            updateNotificationBadge();
+            // Add to UI if notifications panel exists
+            const notificationsList = document.getElementById('notifications-list');
+            if (notificationsList) {
+                // Remove "no notifications" message if exists
+                const emptyMessage = notificationsList.querySelector('p');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+                
+                // Render the notification
+                renderNotification(notification);
+                unreadNotifications++;
+                updateNotificationBadge();
+            }
+        } else {
+            console.log('Ignoring old/read notification:', {
+                isNew,
+                read: notification.read,
+                notifTime: new Date(notification.timestamp).toLocaleTimeString(),
+                listenerTime: new Date(lastNotificationTime).toLocaleTimeString()
+            });
         }
     });
     
-    console.log('Notification listener set up successfully');
+    console.log('âœ… Notification listener set up successfully for user:', userId);
 }
 
 // Helper function to render a notification
