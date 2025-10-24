@@ -69,7 +69,7 @@ function updateNotificationBadge() {
 }
 
 function viewAllNotifications() {
-    showToast('FunciÃ³n "Ver todas" prÃ³ximamente disponible');
+    showToast('Función "Ver todas" próximamente disponible');
     toggleNotifications();
 }
 
@@ -178,7 +178,7 @@ async function loadNotificationsFromFirebase() {
     
     try {
         const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
-        console.log('ðŸ“¥ Loading notifications for user:', userId);
+        console.log('📥 Loading notifications for user:', userId);
         
         const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
         const snapshot = await firebaseDB.get(notificationsRef);
@@ -209,17 +209,17 @@ async function loadNotificationsFromFirebase() {
             });
             
             updateNotificationBadge();
-            console.log(`âœ… Loaded ${notificationsArray.length} notifications (${unreadNotifications} unread)`);
+            console.log(`✅ Loaded ${notificationsArray.length} notifications (${unreadNotifications} unread)`);
             
             // Set up real-time listener for NEW notifications
             setupNotificationListener();
         } else {
-            console.log('âš ï¸ No notifications found in Firebase for user:', userId);
+            console.log('⚠️ No notifications found in Firebase for user:', userId);
             // Set up listener even if no notifications exist
             setupNotificationListener();
         }
     } catch (error) {
-        console.error('âŒ Error loading notifications from Firebase:', error);
+        console.error('❌ Error loading notifications from Firebase:', error);
     }
 }
 
@@ -240,8 +240,8 @@ function setupNotificationListener() {
     
     // Update the timestamp to NOW
     lastNotificationTime = Date.now();
-    console.log('ðŸŽ§ Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
-    console.log('ðŸ‘‚ Listening for user:', userId);
+    console.log('🎧 Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
+    console.log('👂 Listening for user:', userId);
     
     // Remove existing listener if any
     if (notificationListener) {
@@ -253,7 +253,7 @@ function setupNotificationListener() {
         const notification = snapshot.val();
         const notificationId = snapshot.key;
         
-        console.log('ðŸ“© Child added event:', {
+        console.log('📩 Child added event:', {
             id: notificationId,
             timestamp: new Date(notification.timestamp).toLocaleString(),
             listenerTime: new Date(lastNotificationTime).toLocaleString(),
@@ -264,7 +264,7 @@ function setupNotificationListener() {
         const isNew = notification.timestamp > lastNotificationTime;
         
         if (isNew && !notification.read) {
-            console.log('ðŸ”” NEW notification detected!', {
+            console.log('🔔 NEW notification detected!', {
                 type: notification.type,
                 message: notification.message,
                 from: notification.user?.displayName
@@ -276,20 +276,20 @@ function setupNotificationListener() {
                 
                 switch(notification.type) {
                     case 'like':
-                        title = 'ðŸ’– Nuevo Like';
+                        title = '💖 Nuevo Like';
                         break;
                     case 'comment':
-                        title = 'ðŸ’¬ Nuevo Mensaje';
+                        title = '💬 Nuevo Mensaje';
                         break;
                     case 'follow':
-                        title = 'ðŸ‘¤ Nuevo Seguidor';
+                        title = '👤 Nuevo Seguidor';
                         break;
                 }
                 
                 const userName = notification.user?.displayName || 'Alguien';
                 const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
                 
-                console.log('ðŸ“¢ Sending push notification:', title, userName);
+                console.log('📢 Sending push notification:', title, userName);
                 
                 window.sendPushNotification(title, {
                     body: notification.message,
@@ -297,13 +297,13 @@ function setupNotificationListener() {
                     data: { url: window.location.origin }
                 });
             } else {
-                console.log('âš ï¸ Push notification not sent. Permission:', Notification.permission);
+                console.log('⚠️ Push notification not sent. Permission:', Notification.permission);
             }
             
             // Add to UI if notifications panel exists
             const notificationsList = document.getElementById('notifications-list');
             if (notificationsList) {
-                console.log('âž• Adding notification to UI');
+                console.log('➕ Adding notification to UI');
                 // Remove "no notifications" message if exists
                 const emptyMessage = notificationsList.querySelector('p');
                 if (emptyMessage) {
@@ -316,7 +316,7 @@ function setupNotificationListener() {
                 updateNotificationBadge();
             }
         } else {
-            console.log('â­ï¸ Skipping notification (old or read):', {
+            console.log('⏭️ Skipping notification (old or read):', {
                 isNew,
                 read: notification.read,
                 timestamp: notification.timestamp,
@@ -325,7 +325,7 @@ function setupNotificationListener() {
         }
     });
     
-    console.log('âœ… Notification listener set up successfully');
+    console.log('✅ Notification listener set up successfully');
 }
 
 // Helper function to render a notification
@@ -401,10 +401,10 @@ function getTimeAgo(timestamp) {
 }
 
 // Expose to window
-console.log('ðŸ“¢ Exposing notification functions to window');
+console.log('📢 Exposing notification functions to window');
 window.loadNotificationsFromFirebase = loadNotificationsFromFirebase;
 window.addNotification = addNotification;
-console.log('âœ… Notification functions exposed:', {
+console.log('✅ Notification functions exposed:', {
     loadNotificationsFromFirebase: typeof window.loadNotificationsFromFirebase,
     addNotification: typeof window.addNotification
 });
