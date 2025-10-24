@@ -2238,12 +2238,9 @@ async function loadCryptoNews() {
     if (errorElement) errorElement.classList.add('hidden');
     
     try {
-        // Query for crypto-related news
-        const queries = ['cryptocurrency', 'bitcoin', 'ethereum', 'blockchain'];
-        const randomQuery = queries[Math.floor(Math.random() * queries.length)];
-        
+        // Use CryptoPanic API (free, no key required for public posts)
         const response = await fetch(
-            `https://newsapi.org/v2/everything?q=${randomQuery}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${NEWS_API_KEY}`
+            'https://cryptopanic.com/api/v1/posts/?auth_token=free&public=true&kind=news&filter=hot'
         );
         
         if (!response.ok) {
@@ -2252,23 +2249,22 @@ async function loadCryptoNews() {
         
         const data = await response.json();
         
-        if (data.status === 'ok' && data.articles && data.articles.length > 0) {
-            // Filter articles with images and valid content
-            const validArticles = data.articles.filter(article => 
-                article.urlToImage && 
-                article.title && 
-                article.description &&
-                article.title !== '[Removed]' &&
-                article.description !== '[Removed]'
-            ).slice(0, 15); // Limit to 15 articles
+        if (data.results && data.results.length > 0) {
+            // Transform CryptoPanic data to match our format
+            const articles = data.results.slice(0, 15).map(item => ({
+                title: item.title,
+                description: item.title, // CryptoPanic doesn't provide description
+                url: item.url,
+                urlToImage: item.currencies && item.currencies[0] 
+                    ? `https://assets.coincap.io/assets/icons/${item.currencies[0].code.toLowerCase()}@2x.png`
+                    : 'https://via.placeholder.com/400x200/667eea/ffffff?text=Crypto+News',
+                publishedAt: item.created_at,
+                source: { name: item.source?.title || 'CryptoPanic' }
+            }));
             
-            if (validArticles.length > 0) {
-                newsCache = validArticles;
-                newsCacheTime = now;
-                displayNews(validArticles);
-            } else {
-                throw new Error('No valid articles found');
-            }
+            newsCache = articles;
+            newsCacheTime = now;
+            displayNews(articles);
         } else {
             throw new Error('No articles found');
         }
