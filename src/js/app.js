@@ -33,6 +33,8 @@ window.onFirebaseAuthStateChanged = function(user) {
         if (window.loadCryptoPortfolio) {
             setTimeout(() => window.loadCryptoPortfolio(), 700);
         }
+        // Load posts from Firebase
+        setTimeout(() => loadPostsFromFirebase(), 800);
     } else {
         // User signed out, go to login
         showSection('login');
@@ -194,6 +196,53 @@ function addMedia(type) {
 // ============================================
 
 // Load posts from localStorage
+// Load posts from Firebase
+async function loadPostsFromFirebase() {
+    if (!database || !firebaseDB || !currentUser) return;
+    
+    try {
+        const postsRef = firebaseDB.ref(database, 'posts');
+        const snapshot = await firebaseDB.get(postsRef);
+        
+        if (snapshot.exists()) {
+            const firebasePosts = [];
+            snapshot.forEach((childSnapshot) => {
+                firebasePosts.push(childSnapshot.val());
+            });
+            
+            // Get local posts
+            const localPosts = JSON.parse(localStorage.getItem('nitedcrypto_posts') || '[]');
+            
+            // Merge posts (Firebase + localStorage), remove duplicates
+            const allPostsMap = new Map();
+            
+            // Add local posts first
+            localPosts.forEach(post => {
+                allPostsMap.set(post.id, post);
+            });
+            
+            // Add/update with Firebase posts
+            firebasePosts.forEach(post => {
+                allPostsMap.set(post.id, post);
+            });
+            
+            // Convert back to array and sort by timestamp
+            const mergedPosts = Array.from(allPostsMap.values())
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Save merged posts to localStorage
+            localStorage.setItem('nitedcrypto_posts', JSON.stringify(mergedPosts));
+            
+            // Reload posts display
+            loadSavedPosts();
+            
+            console.log(`Loaded ${firebasePosts.length} posts from Firebase`);
+        }
+    } catch (error) {
+        console.error('Error loading posts from Firebase:', error);
+    }
+}
+
 function loadSavedPosts() {
     try {
         const savedPosts = localStorage.getItem('nitedcrypto_posts');
@@ -533,6 +582,14 @@ function createHomePost(event) {
         // Save to localStorage
         addPostToStorage(postData);
         
+        // Save to Firebase
+        if (database && firebaseDB) {
+            const postsRef = firebaseDB.ref(database, `posts/${postData.id}`);
+            firebaseDB.set(postsRef, postData).catch(err => {
+                console.error('Error saving post to Firebase:', err);
+            });
+        }
+        
         // Render post
         postData.timestamp = 'ahora'; // Display format
         renderPost(postData);
@@ -614,11 +671,11 @@ async function toggleLike(button) {
         // Also save to Firebase if available
         if (database && firebaseDB) {
             const postRef = firebaseDB.ref(database, `posts/${postId}`);
-            await firebaseDB.set(postRef, {
+            await firebaseDB.update(postRef, {
                 likes: posts[postIndex].likes,
                 likedBy: posts[postIndex].likedBy,
                 lastUpdated: Date.now()
-            });
+            }).catch(err => console.error('Error updating like in Firebase:', err));
         }
         
     } catch (error) {
@@ -709,6 +766,15 @@ function addCommentToStorage(postId, comment) {
                 }
                 posts[postIndex].comments.push(comment);
                 localStorage.setItem('nitedcrypto_posts', JSON.stringify(posts));
+                
+                // Save to Firebase
+                if (database && firebaseDB) {
+                    const postRef = firebaseDB.ref(database, `posts/${postId}`);
+                    firebaseDB.update(postRef, {
+                        comments: posts[postIndex].comments,
+                        lastUpdated: Date.now()
+                    }).catch(err => console.error('Error updating comment in Firebase:', err));
+                }
             }
         }
     } catch (error) {
@@ -1159,6 +1225,7 @@ window.getRelativeTime = getRelativeTime;
 window.renderPost = renderPost;
 window.showSection = showSection;
 window.deletePost = deletePost;
+window.loadPostsFromFirebase = loadPostsFromFirebase;
 
 // Migrate following/followers data from string format to object format
 function migrateFollowingData() {
