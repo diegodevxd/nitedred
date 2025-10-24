@@ -40,8 +40,12 @@ window.onFirebaseAuthStateChanged = function(user) {
         // Load following/followers from Firebase
         setTimeout(() => loadFollowDataFromFirebase(), 1000);
         // Load notifications from Firebase
+        console.log('🔔 Checking notification loader:', typeof window.loadNotificationsFromFirebase);
         if (window.loadNotificationsFromFirebase) {
+            console.log('✅ Loading notifications from Firebase...');
             setTimeout(() => window.loadNotificationsFromFirebase(), 1100);
+        } else {
+            console.error('❌ window.loadNotificationsFromFirebase is not defined!');
         }
         // Request push notification permission
         setTimeout(() => requestNotificationPermission(), 1200);
