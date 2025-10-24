@@ -16,7 +16,7 @@ window.onFirebaseAuthStateChanged = function(user) {
     currentUser = user;
     window.currentUser = user; // Update global reference
     if (user) {
-        console.log('Estado de autenticación actualizado:', user);
+        console.log('Estado de autenticaciÃ³n actualizado:', user);
         // Automatically redirect to home if user is authenticated
         showSection('home');
         // Initialize chat listeners
@@ -76,8 +76,8 @@ async function initFirebaseAuth() {
 
 // Authentication Functions
 function loginWithWallet() {
-    // Función deshabilitada - Solo funciona login con Google/Firebase
-    showToast('⚠️ Por favor inicia sesión con Google');
+    // FunciÃ³n deshabilitada - Solo funciona login con Google/Firebase
+    showToast('âš ï¸ Por favor inicia sesiÃ³n con Google');
     console.log('Wallet login deshabilitado - Usa Firebase Authentication');
 }
 
@@ -89,13 +89,13 @@ async function loginWithGoogle() {
             currentUser = userData;
             // showSection and showToast are already called in auth.js
         } else {
-            // Si Firebase no está disponible, mostrar error
+            // Si Firebase no estÃ¡ disponible, mostrar error
             console.error('Firebase no disponible');
-            showToast('❌ Error: Firebase no configurado correctamente');
+            showToast('âŒ Error: Firebase no configurado correctamente');
         }
     } catch (error) {
         console.error('Error en login:', error);
-        showToast('❌ Error al iniciar sesión');
+        showToast('âŒ Error al iniciar sesiÃ³n');
     }
 }
 
@@ -116,7 +116,7 @@ function handleRegister(event) {
     
     currentUser = { name: username, email: email };
     showSection('home');
-    showToast(`¡Bienvenido ${username}! 🎉`);
+    showToast(`Â¡Bienvenido ${username}! ðŸŽ‰`);
 }
 
 async function logout() {
@@ -131,10 +131,10 @@ async function logout() {
         currentUser = null;
         // The auth state change will trigger showSection('login') via callback
     } catch (error) {
-        console.error('Error al cerrar sesión:', error);
+        console.error('Error al cerrar sesiÃ³n:', error);
         currentUser = null;
         showSection('login');
-        showToast('Sesión cerrada');
+        showToast('SesiÃ³n cerrada');
     }
 }
 
@@ -197,7 +197,7 @@ function addMedia(type) {
         selectedMediaType = type;
     } else {
         console.error('Cloudinary not loaded');
-        showToast('Error: Cloudinary no disponible ❌');
+        showToast('Error: Cloudinary no disponible âŒ');
     }
 }
 
@@ -271,8 +271,8 @@ function loadSavedPosts() {
                 feed.innerHTML = `
                     <div class="glass-effect rounded-2xl p-8 text-center">
                         <i class="fas fa-rocket text-6xl text-purple-400 mb-4"></i>
-                        <h3 class="text-white text-xl font-bold mb-2">¡Bienvenido a CryptoSocial!</h3>
-                        <p class="text-white text-opacity-60 mb-4">Sé el primero en compartir algo increíble</p>
+                        <h3 class="text-white text-xl font-bold mb-2">Â¡Bienvenido a CryptoSocial!</h3>
+                        <p class="text-white text-opacity-60 mb-4">SÃ© el primero en compartir algo increÃ­ble</p>
                         <button onclick="showCreateHomePost()" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all">
                             Crear tu primer post
                         </button>
@@ -303,8 +303,8 @@ function loadSavedPosts() {
             feed.innerHTML = `
                 <div class="glass-effect rounded-2xl p-8 text-center">
                     <i class="fas fa-rocket text-6xl text-purple-400 mb-4"></i>
-                    <h3 class="text-white text-xl font-bold mb-2">¡Bienvenido a CryptoSocial!</h3>
-                    <p class="text-white text-opacity-60 mb-4">Sé el primero en compartir algo increíble</p>
+                    <h3 class="text-white text-xl font-bold mb-2">Â¡Bienvenido a CryptoSocial!</h3>
+                    <p class="text-white text-opacity-60 mb-4">SÃ© el primero en compartir algo increÃ­ble</p>
                     <button onclick="showCreateHomePost()" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all">
                         Crear tu primer post
                     </button>
@@ -555,18 +555,18 @@ function getRelativeTime(timestamp) {
     if (diff < 60) return 'ahora';
     if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
     if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} días`;
+    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} dÃ­as`;
     return postDate.toLocaleDateString();
 }
 
 // Delete post
 async function deletePost(postId) {
     if (!currentUser) {
-        showToast('⚠️ Debes iniciar sesión');
+        showToast('âš ï¸ Debes iniciar sesiÃ³n');
         return;
     }
     
-    if (!confirm('¿Estás seguro de que quieres eliminar este post?')) {
+    if (!confirm('Â¿EstÃ¡s seguro de que quieres eliminar este post?')) {
         return;
     }
     
@@ -581,7 +581,7 @@ async function deletePost(postId) {
             
             // Verify ownership
             if (post.userId !== currentUserId) {
-                showToast('⚠️ No puedes eliminar posts de otros usuarios');
+                showToast('âš ï¸ No puedes eliminar posts de otros usuarios');
                 return;
             }
             
@@ -605,7 +605,7 @@ async function deletePost(postId) {
                 postElement.classList.add('slide-out');
                 setTimeout(() => {
                     postElement.remove();
-                    showToast('✅ Post eliminado');
+                    showToast('âœ… Post eliminado');
                     
                     // Update stats if on profile page
                     if (typeof updateProfileStats === 'function') {
@@ -614,11 +614,11 @@ async function deletePost(postId) {
                 }, 300);
             }
         } else {
-            showToast('⚠️ Post no encontrado');
+            showToast('âš ï¸ Post no encontrado');
         }
     } catch (error) {
         console.error('Error deleting post:', error);
-        showToast('❌ Error al eliminar el post');
+        showToast('âŒ Error al eliminar el post');
     }
 }
 
@@ -665,15 +665,15 @@ function createHomePost(event) {
         selectedMediaType = null;
         
         hideCreateHomePost();
-        showToast('¡Post publicado exitosamente! 🎉');
+        showToast('Â¡Post publicado exitosamente! ðŸŽ‰');
     } else {
-        showToast('Escribe algo o sube una imagen/video ⚠️');
+        showToast('Escribe algo o sube una imagen/video âš ï¸');
     }
 }
 
 async function toggleLike(button) {
     if (!currentUser) {
-        showToast('⚠️ Debes iniciar sesión para dar like');
+        showToast('âš ï¸ Debes iniciar sesiÃ³n para dar like');
         return;
     }
     
@@ -741,29 +741,33 @@ async function toggleLike(button) {
             }).catch(err => console.error('Error updating like in Firebase:', err));
             
             // Create notification for post owner if someone else liked it
-            if (!hasLiked && posts[postIndex].userId && posts[postIndex].userId !== currentUserId && window.addNotification) {
+            if (!hasLiked && posts[postIndex].userId && posts[postIndex].userId !== currentUserId) {
                 const userName = currentUser.displayName || currentUser.email?.split('@')[0] || 'Alguien';
-                window.addNotification(
-                    'like',
-                    `${userName} le dio like a tu publicación`,
-                    currentUser,
-                    posts[postIndex].userId
-                );
                 
-                // Send push notification
-                if (window.sendPushNotification) {
-                    window.sendPushNotification('💖 Nuevo Like', {
-                        body: `${userName} le dio like a tu publicación`,
-                        icon: currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName),
-                        data: { url: window.location.origin }
-                    });
-                }
+                // Save notification to Firebase for receiver only
+                const notificationData = {
+                    id: Date.now().toString(),
+                    type: 'like',
+                    message: `${userName} le dio like a tu publicaciÃ³n`,
+                    user: {
+                        displayName: userName,
+                        photoURL: currentUser.photoURL || null
+                    },
+                    timestamp: Date.now(),
+                    read: false
+                };
+                
+                const receiverUserId = posts[postIndex].userId.replace(/[.@]/g, '_');
+                const notifRef = firebaseDB.ref(database, `notifications/${receiverUserId}/${notificationData.id}`);
+                firebaseDB.set(notifRef, notificationData).catch(err => {
+                    console.error('Error saving like notification:', err);
+                });
             }
         }
         
     } catch (error) {
         console.error('Error toggling like:', error);
-        showToast('❌ Error al dar like');
+        showToast('âŒ Error al dar like');
     }
 }
 
@@ -803,7 +807,7 @@ function toggleComments(postId) {
 // Add comment to a post
 function addComment(postId) {
     if (!currentUser) {
-        showToast('Debes iniciar sesión para comentar');
+        showToast('Debes iniciar sesiÃ³n para comentar');
         return;
     }
     
@@ -833,7 +837,7 @@ function addComment(postId) {
     input.value = '';
     
     // Show notification
-    showToast('Comentario agregado! 💬');
+    showToast('Comentario agregado! ðŸ’¬');
 }
 
 // Add comment to localStorage
@@ -860,23 +864,27 @@ function addCommentToStorage(postId, comment) {
                     
                     // Create notification for post owner if someone else commented
                     const currentUserId = currentUser?.uid || currentUser?.email?.replace(/[.@]/g, '_');
-                    if (posts[postIndex].userId && posts[postIndex].userId !== currentUserId && window.addNotification) {
+                    if (posts[postIndex].userId && posts[postIndex].userId !== currentUserId) {
                         const userName = comment.userName || 'Alguien';
-                        window.addNotification(
-                            'comment',
-                            `${userName} comentó tu publicación`,
-                            currentUser,
-                            posts[postIndex].userId
-                        );
                         
-                        // Send push notification
-                        if (window.sendPushNotification) {
-                            window.sendPushNotification('💬 Nuevo Comentario', {
-                                body: `${userName} comentó: "${comment.text.substring(0, 50)}${comment.text.length > 50 ? '...' : ''}"`,
-                                icon: comment.userPhotoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName),
-                                data: { url: window.location.origin }
-                            });
-                        }
+                        // Save notification to Firebase for receiver only
+                        const notificationData = {
+                            id: Date.now().toString(),
+                            type: 'comment',
+                            message: `${userName} comentÃ³ tu publicaciÃ³n`,
+                            user: {
+                                displayName: userName,
+                                photoURL: comment.userPhotoURL || null
+                            },
+                            timestamp: Date.now(),
+                            read: false
+                        };
+                        
+                        const receiverUserId = posts[postIndex].userId.replace(/[.@]/g, '_');
+                        const notifRef = firebaseDB.ref(database, `notifications/${receiverUserId}/${notificationData.id}`);
+                        firebaseDB.set(notifRef, notificationData).catch(err => {
+                            console.error('Error saving comment notification:', err);
+                        });
                     }
                 }
             }
@@ -962,7 +970,7 @@ async function cleanAllFirebaseChats() {
         return;
     }
     
-    if (!confirm('¿Estás seguro de que quieres eliminar TODOS los chats? Esta acción no se puede deshacer.')) {
+    if (!confirm('Â¿EstÃ¡s seguro de que quieres eliminar TODOS los chats? Esta acciÃ³n no se puede deshacer.')) {
         return;
     }
     
@@ -1016,7 +1024,7 @@ function isFollowing(userId) {
 // Toggle follow/unfollow
 function toggleFollow(userId, userName, button) {
     if (!currentUser) {
-        showToast('Debes iniciar sesión para seguir usuarios');
+        showToast('Debes iniciar sesiÃ³n para seguir usuarios');
         return;
     }
     
@@ -1063,7 +1071,7 @@ function toggleFollow(userId, userName, button) {
             
             button.textContent = 'Siguiendo';
             button.className = 'follow-btn px-4 py-1 rounded-full text-sm font-medium transition-all bg-gray-600 text-white';
-            showToast(`Ahora sigues a ${userName}! 🎉`);
+            showToast(`Ahora sigues a ${userName}! ðŸŽ‰`);
             
             // Update followers list
             updateFollowersList(userId, currentUserId, true);
@@ -1080,7 +1088,7 @@ function toggleFollow(userId, userName, button) {
         }
     } catch (error) {
         console.error('Error toggling follow:', error);
-        showToast('Error al procesar la acción');
+        showToast('Error al procesar la acciÃ³n');
     }
 }
 
@@ -1127,22 +1135,25 @@ function updateFollowersList(targetUserId, currentUserId, isFollowing) {
             });
             
             // Create notification for followed user
-            if (isFollowing && window.addNotification) {
-                window.addNotification(
-                    'follow',
-                    `${currentUserName} comenzó a seguirte`,
-                    currentUser,
-                    targetUserId
-                );
+            if (isFollowing) {
+                // Save notification to Firebase for receiver only
+                const notificationData = {
+                    id: Date.now().toString(),
+                    type: 'follow',
+                    message: `${currentUserName} comenzÃ³ a seguirte`,
+                    user: {
+                        displayName: currentUserName,
+                        photoURL: currentUserPhoto || null
+                    },
+                    timestamp: Date.now(),
+                    read: false
+                };
                 
-                // Send push notification
-                if (window.sendPushNotification) {
-                    window.sendPushNotification('👤 Nuevo Seguidor', {
-                        body: `${currentUserName} comenzó a seguirte`,
-                        icon: currentUserPhoto || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUserName),
-                        data: { url: window.location.origin }
-                    });
-                }
+                const receiverUserId = targetUserId.replace(/[.@]/g, '_');
+                const notifRef = firebaseDB.ref(database, `notifications/${receiverUserId}/${notificationData.id}`);
+                firebaseDB.set(notifRef, notificationData).catch(err => {
+                    console.error('Error saving follow notification:', err);
+                });
             }
         }
     } catch (error) {
@@ -1216,7 +1227,7 @@ function getFollowingList() {
 // Story Upload Function
 function openStoryUpload() {
     if (!currentUser) {
-        showToast('Debes iniciar sesión para subir una historia');
+        showToast('Debes iniciar sesiÃ³n para subir una historia');
         return;
     }
     
@@ -1271,7 +1282,7 @@ function openStoryUpload() {
             // Display story
             renderStory(storyData);
             
-            showToast('¡Historia publicada! 🎉');
+            showToast('Â¡Historia publicada! ðŸŽ‰');
         } else if (error) {
             console.error('Error uploading story:', error);
             showToast('Error al subir la historia');
@@ -1744,7 +1755,7 @@ function loadFollowingForChat() {
         container.innerHTML = `
             <div class="text-center py-8">
                 <i class="fas fa-user-friends text-white text-opacity-30 text-4xl mb-3"></i>
-                <p class="text-white text-opacity-60">No sigues a nadie aún</p>
+                <p class="text-white text-opacity-60">No sigues a nadie aÃºn</p>
                 <p class="text-white text-opacity-40 text-sm mt-1">Sigue a otros usuarios para chatear con ellos</p>
             </div>
         `;
@@ -1797,7 +1808,7 @@ async function startChatWithUser(user) {
         });
         
         hideNewChat();
-        showToast(`Chat con ${user.name} creado! 💬`);
+        showToast(`Chat con ${user.name} creado! ðŸ’¬`);
         
     } catch (error) {
         console.error('Error creating chat:', error);
@@ -1814,7 +1825,7 @@ function loadChats() {
         container.innerHTML = `
             <div class="text-center py-12">
                 <i class="fas fa-comments text-white text-opacity-30 text-5xl mb-3"></i>
-                <p class="text-white text-opacity-60">Inicia sesión para ver tus chats</p>
+                <p class="text-white text-opacity-60">Inicia sesiÃ³n para ver tus chats</p>
             </div>
         `;
         return;
@@ -1831,7 +1842,7 @@ function loadChats() {
                 container.innerHTML = `
                     <div class="text-center py-12">
                         <i class="fas fa-comments text-white text-opacity-30 text-5xl mb-3"></i>
-                        <p class="text-white text-opacity-60">No hay chats aún</p>
+                        <p class="text-white text-opacity-60">No hay chats aÃºn</p>
                         <p class="text-white text-opacity-40 text-sm mt-1">Sigue a otros usuarios para comenzar a chatear</p>
                     </div>
                 `;
@@ -1862,7 +1873,7 @@ function loadChats() {
                     ${avatar}
                     <div class="flex-1 ml-3">
                         <h3 class="text-white font-semibold">${chat.userName}</h3>
-                        <p class="text-white text-opacity-60 text-sm line-clamp-1">${chat.lastMessage || 'Comienza una conversación'}</p>
+                        <p class="text-white text-opacity-60 text-sm line-clamp-1">${chat.lastMessage || 'Comienza una conversaciÃ³n'}</p>
                     </div>
                     <div class="text-right">
                         <div class="text-white text-opacity-60 text-xs">${timeAgo}</div>
@@ -1953,7 +1964,7 @@ function openChat(chat) {
         const initial = userName[0]?.toUpperCase() || 'U';
         chatAvatar.innerHTML = `<span class="text-white font-bold">${initial}</span>`;
         chatName.textContent = userName;
-        if (chatStatus) chatStatus.textContent = 'En línea';
+        if (chatStatus) chatStatus.textContent = 'En lÃ­nea';
     }
     
     // Load messages for this chat
@@ -2022,8 +2033,8 @@ function loadMessages(userId) {
                 messagesContainer.innerHTML = `
                     <div class="text-center py-12">
                         <i class="fas fa-comment-dots text-white text-opacity-30 text-5xl mb-3"></i>
-                        <p class="text-white text-opacity-60">No hay mensajes aún</p>
-                        <p class="text-white text-opacity-40 text-sm mt-1">Envía el primer mensaje</p>
+                        <p class="text-white text-opacity-60">No hay mensajes aÃºn</p>
+                        <p class="text-white text-opacity-40 text-sm mt-1">EnvÃ­a el primer mensaje</p>
                     </div>
                 `;
                 return;
@@ -2144,27 +2155,34 @@ async function sendMessage(event) {
         // Clear input
         messageInput.value = '';
         
-        // Send notification to receiver
+        // Send notification to receiver (only save to Firebase, don't show push here)
         if (window.addNotification) {
             const senderName = currentUser.displayName || currentUser.email?.split('@')[0] || 'Alguien';
-            window.addNotification(
-                'comment', // Using comment icon for messages
-                `${senderName} te envió un mensaje: "${messageText.substring(0, 30)}${messageText.length > 30 ? '...' : ''}"`,
-                currentUser,
-                chatUserId
-            );
+            // Only save to Firebase for the receiver - don't pass targetUserId as current user
+            // This will save the notification but won't display it locally
+            const notificationData = {
+                id: Date.now().toString(),
+                type: 'comment',
+                message: `${senderName} te enviÃ³ un mensaje: "${messageText.substring(0, 30)}${messageText.length > 30 ? '...' : ''}"`,
+                user: {
+                    displayName: senderName,
+                    photoURL: currentUser.photoURL || null
+                },
+                timestamp: Date.now(),
+                read: false
+            };
             
-            // Send push notification
-            if (window.sendPushNotification) {
-                window.sendPushNotification('💬 Nuevo Mensaje', {
-                    body: `${senderName}: ${messageText.substring(0, 50)}${messageText.length > 50 ? '...' : ''}`,
-                    icon: currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(senderName),
-                    data: { url: window.location.origin }
+            // Save directly to Firebase for receiver only
+            if (database && firebaseDB) {
+                const receiverUserId = chatUserId.replace(/[.@]/g, '_');
+                const notifRef = firebaseDB.ref(database, `notifications/${receiverUserId}/${notificationData.id}`);
+                firebaseDB.set(notifRef, notificationData).catch(err => {
+                    console.error('Error saving message notification:', err);
                 });
             }
         }
         
-        showToast('Mensaje enviado ✓');
+        showToast('Mensaje enviado âœ“');
         console.log('===================================');
         
     } catch (error) {
@@ -2230,7 +2248,7 @@ function archiveCurrentChat() {
 }
 
 function blockUser() {
-    if (confirm('¿Estás seguro de que deseas bloquear a este usuario?')) {
+    if (confirm('Â¿EstÃ¡s seguro de que deseas bloquear a este usuario?')) {
         showToast('Usuario bloqueado');
         showChatOptions();
         backToChats();
@@ -2471,7 +2489,7 @@ function initTradingViewChart(symbol) {
             <div class="flex items-center justify-center h-full">
                 <div class="text-center">
                     <i class="fas fa-chart-line text-white text-opacity-50 text-4xl mb-3"></i>
-                    <p class="text-white text-opacity-70">Error al cargar el gráfico</p>
+                    <p class="text-white text-opacity-70">Error al cargar el grÃ¡fico</p>
                 </div>
             </div>
         `;
@@ -2588,7 +2606,7 @@ function displayNews(articles) {
                 ` : ''}
             </div>
             <h3 class="text-white font-semibold mb-2 line-clamp-2">${article.title}</h3>
-            <p class="text-white text-opacity-70 text-sm mb-3 line-clamp-3">${article.description || 'No hay descripción disponible.'}</p>
+            <p class="text-white text-opacity-70 text-sm mb-3 line-clamp-3">${article.description || 'No hay descripciÃ³n disponible.'}</p>
             <div class="flex justify-between items-center">
                 <span class="text-white text-opacity-60 text-xs">${timeAgo}</span>
                 <button onclick="openNewsArticle('${article.url.replace(/'/g, "\\'")}', event)" class="text-blue-400 hover:text-blue-300 transition-colors">
@@ -2622,7 +2640,7 @@ function getNewsTimeAgo(date) {
     if (diff < 60) return 'ahora mismo';
     if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
     if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} días`;
+    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} dÃ­as`;
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
@@ -2638,12 +2656,12 @@ async function requestNotificationPermission() {
     
     // Check if permission has already been granted or denied
     if (Notification.permission === 'granted') {
-        console.log('Permisos de notificación ya concedidos');
+        console.log('Permisos de notificaciÃ³n ya concedidos');
         return;
     }
     
     if (Notification.permission === 'denied') {
-        console.log('Permisos de notificación denegados por el usuario');
+        console.log('Permisos de notificaciÃ³n denegados por el usuario');
         return;
     }
     
@@ -2651,13 +2669,13 @@ async function requestNotificationPermission() {
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            console.log('Permiso de notificación concedido');
-            showToast('✅ Notificaciones habilitadas! Recibirás alertas en tiempo real');
+            console.log('Permiso de notificaciÃ³n concedido');
+            showToast('âœ… Notificaciones habilitadas! RecibirÃ¡s alertas en tiempo real');
         } else {
-            console.log('Permiso de notificación denegado');
+            console.log('Permiso de notificaciÃ³n denegado');
         }
     } catch (error) {
-        console.error('Error solicitando permiso de notificación:', error);
+        console.error('Error solicitando permiso de notificaciÃ³n:', error);
     }
 }
 
@@ -2670,7 +2688,7 @@ function sendPushNotification(title, options = {}) {
     }
     
     if (Notification.permission !== 'granted') {
-        console.log('Permisos de notificación no concedidos');
+        console.log('Permisos de notificaciÃ³n no concedidos');
         return;
     }
     
@@ -2702,11 +2720,12 @@ function sendPushNotification(title, options = {}) {
         setTimeout(() => notification.close(), 5000);
         
     } catch (error) {
-        console.error('Error enviando notificación push:', error);
+        console.error('Error enviando notificaciÃ³n push:', error);
     }
 }
 
 // Expose to window
 window.requestNotificationPermission = requestNotificationPermission;
 window.sendPushNotification = sendPushNotification;
+
 
