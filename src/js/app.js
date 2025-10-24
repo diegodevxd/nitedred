@@ -2175,10 +2175,20 @@ async function sendMessage(event) {
             // Save directly to Firebase for receiver only
             if (database && firebaseDB) {
                 const receiverUserId = chatUserId.replace(/[.@]/g, '_');
+                console.log('ðŸ’¬ Saving message notification:');
+                console.log('  From (sender):', currentUserId);
+                console.log('  To (receiver):', receiverUserId);
+                console.log('  Firebase path:', `notifications/${receiverUserId}/${notificationData.id}`);
+                console.log('  Message:', notificationData.message);
+                
                 const notifRef = firebaseDB.ref(database, `notifications/${receiverUserId}/${notificationData.id}`);
-                firebaseDB.set(notifRef, notificationData).catch(err => {
-                    console.error('Error saving message notification:', err);
-                });
+                firebaseDB.set(notifRef, notificationData)
+                    .then(() => {
+                        console.log('âœ… Message notification saved successfully to receiver');
+                    })
+                    .catch(err => {
+                        console.error('âŒ Error saving message notification:', err);
+                    });
             }
         }
         
@@ -2727,5 +2737,4 @@ function sendPushNotification(title, options = {}) {
 // Expose to window
 window.requestNotificationPermission = requestNotificationPermission;
 window.sendPushNotification = sendPushNotification;
-
 
