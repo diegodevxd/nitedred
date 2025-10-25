@@ -177,7 +177,7 @@ async function loadNotificationsFromFirebase() {
     }
     
     try {
-        const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+        const userId = currentUser.uid;  // Usar UID directo, sin sanitizar
         console.log('📥 CARGANDO NOTIFICACIONES PARA:', userId);
         
         const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
@@ -239,7 +239,7 @@ function setupNotificationListener() {
         return;
     }
     
-    const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
+    const userId = currentUser.uid;  // Usar UID directo, sin sanitizar
     const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
     
     console.log('🎧 CONFIGURANDO LISTENER DE NOTIFICACIONES');
