@@ -2161,7 +2161,7 @@ async function sendMessage(event) {
         
         // Send notification to receiver - save directly to Firebase
         const senderName = currentUser.displayName || currentUser.email?.split('@')[0] || 'Alguien';
-        const receiverUserId = chatUserId; // Already has .replace(/[.@]/g, '_') applied above
+        const receiverUserId = currentActiveChat.uid || currentActiveChat.userId || currentActiveChat.id;  // Usar UID directo
         
         const notificationData = {
             id: Date.now().toString(),
@@ -2735,4 +2735,6 @@ function sendPushNotification(title, options = {}) {
 // Expose to window
 window.requestNotificationPermission = requestNotificationPermission;
 window.sendPushNotification = sendPushNotification;
+
+
 
