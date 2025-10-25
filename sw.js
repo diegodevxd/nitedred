@@ -1,6 +1,43 @@
 // Service Worker for Push Notifications
 const CACHE_NAME = 'nitedcrypto-v1';
 
+// Firebase Messaging Service Worker
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+// Initialize Firebase in Service Worker
+const firebaseConfig = {
+    apiKey: "AIzaSyBne6Zpr5qKLnNJr6SUEh4PGpdnGqyWPwo",
+    authDomain: "nitedcrypto-da32a.firebaseapp.com",
+    databaseURL: "https://nitedcrypto-da32a-default-rtdb.firebaseio.com",
+    projectId: "nitedcrypto-da32a",
+    storageBucket: "nitedcrypto-da32a.firebasestorage.app",
+    messagingSenderId: "85577171483",
+    appId: "1:85577171483:web:805aaa524d4727c4bb2ebe"
+};
+
+firebase.initializeApp(firebaseConfig);
+const messaging = firebase.messaging();
+
+// Handle background messages from Firebase
+messaging.onBackgroundMessage((payload) => {
+    console.log('📱 Mensaje en segundo plano recibido:', payload);
+    
+    const notificationTitle = payload.notification?.title || '💬 Nuevo Mensaje';
+    const notificationOptions = {
+        body: payload.notification?.body || 'Tienes una nueva notificación',
+        icon: payload.notification?.icon || '/src/css/logo.png',
+        badge: '/src/css/logo.png',
+        vibrate: [200, 100, 200],
+        tag: 'cryptosocial-bg-notification',
+        requireInteraction: false,
+        data: payload.data || {}
+    };
+    
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+
 // Install Service Worker
 self.addEventListener('install', (event) => {
     console.log('Service Worker installing...');
