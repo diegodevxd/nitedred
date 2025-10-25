@@ -775,13 +775,35 @@
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
+            // Detectar si estamos en GitHub Pages o local
+            const swPath = window.location.hostname === 'diegodevxd.github.io' 
+                ? '/nitedred/sw.js' 
+                : '/sw.js';
+            
+            navigator.serviceWorker.register(swPath)
                 .then(registration => {
-                    console.log('Service Worker registrado:', registration);
+                    console.log('✅ Service Worker registrado:', registration);
+                    
+                    // Solicitar permisos de notificación en móviles
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        // En móviles, debe ser acción del usuario
+                        document.addEventListener('click', function requestNotificationPermission() {
+                            Notification.requestPermission().then(permission => {
+                                console.log('📱 Permiso de notificación:', permission);
+                                if (permission === 'granted') {
+                                    console.log('✅ Notificaciones activadas en móvil');
+                                }
+                            });
+                            // Solo pedir una vez
+                            document.removeEventListener('click', requestNotificationPermission);
+                        }, { once: true });
+                    }
                 })
                 .catch(error => {
-                    console.log('Error registrando Service Worker:', error);
+                    console.error('❌ Error registrando Service Worker:', error);
                 });
+        } else {
+            console.log('⚠️ Service Workers no soportados en este navegador');
         }
     </script>
 </body>
