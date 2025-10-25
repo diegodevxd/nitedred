@@ -269,7 +269,7 @@ function setupNotificationListener() {
             console.log('🆕 Notificaciones nuevas encontradas:', newNotifications.length);
             
             // Procesar cada notificación nueva
-            newNotifications.forEach(notification => {
+            newNotifications.forEach(async notification => {
                 console.log('🔔🔔🔔 NUEVA NOTIFICACIÓN DETECTADA!');
                 console.log('  ID:', notification.key);
                 console.log('  Tipo:', notification.type);
@@ -297,18 +297,46 @@ function setupNotificationListener() {
                     const userName = notification.user?.displayName || 'Alguien';
                     const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
                     
-                    new Notification(title, {
-                        body: notification.message,
-                        icon: userPhoto,
-                        tag: 'cryptosocial-' + notification.key,
-                        requireInteraction: false
-                    });
+                    // Usar Service Worker si está disponible (mejor para móviles)
+                    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                        try {
+                            const registration = await navigator.serviceWorker.ready;
+                            await registration.showNotification(title, {
+                                body: notification.message,
+                                icon: userPhoto,
+                                tag: 'cryptosocial-' + notification.key,
+                                requireInteraction: false,
+                                vibrate: [200, 100, 200], // Vibración en móviles
+                                badge: userPhoto,
+                                data: { url: '/' }
+                            });
+                            console.log('✅ Notificación mostrada vía Service Worker (móvil)');
+                        } catch (e) {
+                            console.log('⚠️ Error con Service Worker, usando API directa:', e);
+                            // Fallback a Notification API directa
+                            new Notification(title, {
+                                body: notification.message,
+                                icon: userPhoto,
+                                tag: 'cryptosocial-' + notification.key,
+                                requireInteraction: false
+                            });
+                        }
+                    } else {
+                        // PC: usar Notification API directa
+                        new Notification(title, {
+                            body: notification.message,
+                            icon: userPhoto,
+                            tag: 'cryptosocial-' + notification.key,
+                            requireInteraction: false
+                        });
+                        console.log('✅ Notificación mostrada vía API directa (PC)');
+                    }
                     
-                    // Sonido
+                    // Sonido (funciona mejor en PC que en móvil)
                     try {
                         const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvHZiTYIGGS57OihUBELTKXh8bllHgU2jdXzzn0pBSp+zPLaizsKGGC37OmjTxALTKTh8bllHwU1i9T0z4AmBSh6y/HajDwKF1247OmiTRAKSqPg8blnHwU0i9T0z4IlBSh6yvLbjTsKGF+37OmiTxEKSqLf8blmHwU0jNP0z4EmBSh5y/HajDwKGGC37OmiTxAKSqPg8bdoHgU1i9P0zoElBSh6y/HajTsLGF+37OmiTxAKSqPg8bllHwU1i9T0z4ElBSh6yvLajTwKF1+37OmiTxAKSqPg8bllHwU1i9T0z4EmBSh6yvLbjTwKF1+37OmiUBAKSqPg8bllHwU1i9T0z4EmBSh5yvLbjTwKF1247OmiUBEKSaLg8blmHwU1i9Ty0IEmBSh6yvLbjTwKGF+37OmiTxEKSaPf8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8Q==');
                         audio.volume = 0.3;
-                        audio.play().catch(e => console.log('No se pudo reproducir sonido'));
+                        audio.play().catch(e => console.log('🔇 No se pudo reproducir sonido (normal en móviles)'));
                     } catch(e) {
                         console.log('Error sonido:', e);
                     }
