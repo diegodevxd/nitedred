@@ -172,13 +172,13 @@ async function loadNotificationsFromFirebase() {
     const { database, firebaseDB, currentUser } = getFirebase();
     
     if (!database || !firebaseDB || !currentUser) {
-        console.log('Firebase not initialized or no user logged in');
+        console.log('⚠️ Firebase not initialized or no user logged in');
         return;
     }
     
     try {
         const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
-        console.log('📥 Loading notifications for user:', userId);
+        console.log('📥 CARGANDO NOTIFICACIONES PARA:', userId);
         
         const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
         const snapshot = await firebaseDB.get(notificationsRef);
@@ -187,7 +187,7 @@ async function loadNotificationsFromFirebase() {
             const firebaseNotifications = snapshot.val();
             const notificationsList = document.getElementById('notifications-list');
             
-            console.log('Found notifications in Firebase:', Object.keys(firebaseNotifications).length);
+            console.log('✅ Encontradas', Object.keys(firebaseNotifications).length, 'notificaciones en Firebase');
             
             // Clear existing notifications
             if (notificationsList) {
@@ -209,70 +209,69 @@ async function loadNotificationsFromFirebase() {
             });
             
             updateNotificationBadge();
-            console.log(`✅ Loaded ${notificationsArray.length} notifications (${unreadNotifications} unread)`);
+            console.log(`✅ Renderizadas ${notificationsArray.length} notificaciones (${unreadNotifications} sin leer)`);
             
-            // Set up real-time listener for NEW notifications
+            // IMPORTANTE: Configurar listener DESPUÉS de cargar
             setupNotificationListener();
         } else {
-            console.log('⚠️ No notifications found in Firebase for user:', userId);
-            // Set up listener even if no notifications exist
+            console.log('⚠️ No hay notificaciones en Firebase para:', userId);
+            // Configurar listener aunque no haya notificaciones
             setupNotificationListener();
         }
     } catch (error) {
-        console.error('❌ Error loading notifications from Firebase:', error);
+        console.error('❌ Error cargando notificaciones:', error);
     }
 }
 
 // Set up real-time listener for new notifications
-let lastNotificationTime = Date.now(); // Track when we started listening
-let notificationListener = null; // Store listener reference
+let listenerConfigured = false;
 
 function setupNotificationListener() {
     const { database, firebaseDB, currentUser } = getFirebase();
     
     if (!database || !firebaseDB || !currentUser) {
-        console.log('Cannot setup notification listener - Firebase not ready');
+        console.log('⚠️ No se puede configurar listener - Firebase no está listo');
+        return;
+    }
+    
+    if (listenerConfigured) {
+        console.log('⚠️ Listener ya configurado, saltando...');
         return;
     }
     
     const userId = (currentUser.email || currentUser.uid).replace(/[.@]/g, '_');
     const notificationsRef = firebaseDB.ref(database, `notifications/${userId}`);
     
-    // Update the timestamp to NOW
-    lastNotificationTime = Date.now();
-    console.log('🎧 Notification listener started at:', new Date(lastNotificationTime).toLocaleTimeString());
-    console.log('👂 Listening for user:', userId);
+    console.log('🎧 CONFIGURANDO LISTENER DE NOTIFICACIONES');
+    console.log('👤 Usuario:', userId);
+    console.log('� Ruta Firebase:', `notifications/${userId}`);
     
-    // Remove existing listener if any
-    if (notificationListener) {
-        firebaseDB.off(notificationsRef, 'child_added', notificationListener);
-    }
+    // Timestamp para filtrar notificaciones nuevas
+    const startTime = Date.now();
     
-    // Listen for new children added
-    notificationListener = firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
+    // Escuchar nuevos hijos agregados
+    firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
         const notification = snapshot.val();
-        const notificationId = snapshot.key;
         
-        console.log('📩 Child added event:', {
-            id: notificationId,
-            timestamp: new Date(notification.timestamp).toLocaleString(),
-            listenerTime: new Date(lastNotificationTime).toLocaleString(),
-            diff: notification.timestamp - lastNotificationTime
+        console.log('� EVENTO onChildAdded disparado!', {
+            id: snapshot.key,
+            timestamp: notification.timestamp,
+            timestampDate: new Date(notification.timestamp).toLocaleString(),
+            startTime: startTime,
+            startTimeDate: new Date(startTime).toLocaleString(),
+            isNew: notification.timestamp > startTime
         });
         
-        // Only process notifications created AFTER listener was set up
-        const isNew = notification.timestamp > lastNotificationTime;
-        
-        if (isNew && !notification.read) {
-            console.log('🔔 NEW notification detected!', {
-                type: notification.type,
-                message: notification.message,
-                from: notification.user?.displayName
-            });
+        // Solo procesar notificaciones NUEVAS (después de configurar el listener)
+        if (notification.timestamp > startTime && !notification.read) {
+            console.log('🔔🔔🔔 NUEVA NOTIFICACIÓN DETECTADA!');
+            console.log('  Tipo:', notification.type);
+            console.log('  Mensaje:', notification.message);
+            console.log('  De:', notification.user?.displayName || 'Desconocido');
             
-            // Show browser push notification
-            if (window.sendPushNotification && Notification.permission === 'granted') {
-                let title = 'CryptoSocial';
+            // Mostrar notificación del navegador
+            if ('Notification' in window && Notification.permission === 'granted') {
+                let title = '🔔 CryptoSocial';
                 
                 switch(notification.type) {
                     case 'like':
@@ -286,46 +285,51 @@ function setupNotificationListener() {
                         break;
                 }
                 
+                console.log('📢 Mostrando notificación del navegador:', title);
+                
                 const userName = notification.user?.displayName || 'Alguien';
                 const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
                 
-                console.log('📢 Sending push notification:', title, userName);
-                
-                window.sendPushNotification(title, {
+                new Notification(title, {
                     body: notification.message,
                     icon: userPhoto,
-                    data: { url: window.location.origin }
+                    tag: 'cryptosocial-' + snapshot.key,
+                    requireInteraction: false
                 });
+                
+                // Reproducir sonido (opcional)
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvHZiTYIGGS57OihUBELTKXh8bllHgU2jdXzzn0pBSp+zPLaizsKGGC37OmjTxALTKTh8bllHwU1i9T0z4AmBSh6y/HajDwKF1247OmiTRAKSqPg8blnHwU0i9T0z4IlBSh6yvLbjTsKGF+37OmiTxEKSqLf8blmHwU0jNP0z4EmBSh5y/HajDwKGGC37OmiTxAKSqPg8bdoHgU1i9P0zoElBSh6y/HajTsLGF+37OmiTxAKSqPg8bllHwU1i9T0z4ElBSh6yvLajTwKF1+37OmiTxAKSqPg8bllHwU1i9T0z4EmBSh6yvLbjTwKF1+37OmiUBAKSqPg8bllHwU1i9T0z4EmBSh5yvLbjTwKF1247OmiUBEKSaLg8blmHwU1i9Ty0IEmBSh6yvLbjTwKGF+37OmiTxEKSaPf8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8Q==');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('No se pudo reproducir sonido'));
+                } catch(e) {
+                    console.log('Error reproduciendo sonido:', e);
+                }
             } else {
-                console.log('⚠️ Push notification not sent. Permission:', Notification.permission);
+                console.log('⚠️ Notificación del navegador NO disponible. Permiso:', Notification.permission);
             }
             
-            // Add to UI if notifications panel exists
+            // Agregar a la UI
             const notificationsList = document.getElementById('notifications-list');
             if (notificationsList) {
-                console.log('➕ Adding notification to UI');
-                // Remove "no notifications" message if exists
                 const emptyMessage = notificationsList.querySelector('p');
                 if (emptyMessage) {
                     emptyMessage.remove();
                 }
                 
-                // Render the notification
                 renderNotification(notification);
                 unreadNotifications++;
                 updateNotificationBadge();
+                
+                console.log('✅ Notificación agregada a la UI. Total sin leer:', unreadNotifications);
             }
         } else {
-            console.log('⏭️ Skipping notification (old or read):', {
-                isNew,
-                read: notification.read,
-                timestamp: notification.timestamp,
-                listenerTime: lastNotificationTime
-            });
+            console.log('⏭️ Notificación ignorada (antigua o leída)');
         }
     });
     
-    console.log('✅ Notification listener set up successfully');
+    listenerConfigured = true;
+    console.log('✅✅✅ LISTENER CONFIGURADO EXITOSAMENTE ✅✅✅');
 }
 
 // Helper function to render a notification
@@ -408,3 +412,4 @@ console.log('✅ Notification functions exposed:', {
     loadNotificationsFromFirebase: typeof window.loadNotificationsFromFirebase,
     addNotification: typeof window.addNotification
 });
+
