@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getDatabase, ref, push, set, onValue, query, orderByChild, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -20,14 +21,26 @@ const auth = getAuth(app);
 const database = getDatabase(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Initialize Firebase Cloud Messaging for background notifications
+let messaging = null;
+try {
+  messaging = getMessaging(app);
+  console.log('✅ Firebase Messaging inicializado');
+} catch (error) {
+  console.log('⚠️ Firebase Messaging no disponible:', error.message);
+}
+
 // Export auth and database functions
 export { 
   auth, 
   database,
+  messaging,
   googleProvider, 
   signInWithPopup, 
   signOut, 
   onAuthStateChanged,
+  getToken,
+  onMessage,
   ref,
   push,
   set,
