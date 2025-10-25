@@ -244,87 +244,93 @@ function setupNotificationListener() {
     
     console.log('🎧 CONFIGURANDO LISTENER DE NOTIFICACIONES');
     console.log('👤 Usuario:', userId);
-    console.log('� Ruta Firebase:', `notifications/${userId}`);
+    console.log('📍 Ruta Firebase:', `notifications/${userId}`);
     
     // Timestamp para filtrar notificaciones nuevas
     const startTime = Date.now();
+    console.log('⏰ Tiempo de inicio:', new Date(startTime).toLocaleString());
     
-    // Escuchar nuevos hijos agregados
-    firebaseDB.onChildAdded(notificationsRef, (snapshot) => {
-        const notification = snapshot.val();
-        
-        console.log('� EVENTO onChildAdded disparado!', {
-            id: snapshot.key,
-            timestamp: notification.timestamp,
-            timestampDate: new Date(notification.timestamp).toLocaleString(),
-            startTime: startTime,
-            startTimeDate: new Date(startTime).toLocaleString(),
-            isNew: notification.timestamp > startTime
-        });
-        
-        // Solo procesar notificaciones NUEVAS (después de configurar el listener)
-        if (notification.timestamp > startTime && !notification.read) {
-            console.log('🔔🔔🔔 NUEVA NOTIFICACIÓN DETECTADA!');
-            console.log('  Tipo:', notification.type);
-            console.log('  Mensaje:', notification.message);
-            console.log('  De:', notification.user?.displayName || 'Desconocido');
+    // Usar onValue para escuchar cambios en tiempo real
+    firebaseDB.onValue(notificationsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const notifications = snapshot.val();
+            const notificationsArray = Object.entries(notifications).map(([key, val]) => ({
+                ...val,
+                key: key
+            }));
             
-            // Mostrar notificación del navegador
-            if ('Notification' in window && Notification.permission === 'granted') {
-                let title = '🔔 CryptoSocial';
-                
-                switch(notification.type) {
-                    case 'like':
-                        title = '💖 Nuevo Like';
-                        break;
-                    case 'comment':
-                        title = '💬 Nuevo Mensaje';
-                        break;
-                    case 'follow':
-                        title = '👤 Nuevo Seguidor';
-                        break;
-                }
-                
-                console.log('📢 Mostrando notificación del navegador:', title);
-                
-                const userName = notification.user?.displayName || 'Alguien';
-                const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
-                
-                new Notification(title, {
-                    body: notification.message,
-                    icon: userPhoto,
-                    tag: 'cryptosocial-' + snapshot.key,
-                    requireInteraction: false
-                });
-                
-                // Reproducir sonido (opcional)
-                try {
-                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvHZiTYIGGS57OihUBELTKXh8bllHgU2jdXzzn0pBSp+zPLaizsKGGC37OmjTxALTKTh8bllHwU1i9T0z4AmBSh6y/HajDwKF1247OmiTRAKSqPg8blnHwU0i9T0z4IlBSh6yvLbjTsKGF+37OmiTxEKSqLf8blmHwU0jNP0z4EmBSh5y/HajDwKGGC37OmiTxAKSqPg8bdoHgU1i9P0zoElBSh6y/HajTsLGF+37OmiTxAKSqPg8bllHwU1i9T0z4ElBSh6yvLajTwKF1+37OmiTxAKSqPg8bllHwU1i9T0z4EmBSh6yvLbjTwKF1+37OmiUBAKSqPg8bllHwU1i9T0z4EmBSh5yvLbjTwKF1247OmiUBEKSaLg8blmHwU1i9Ty0IEmBSh6yvLbjTwKGF+37OmiTxEKSaPf8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8Q==');
-                    audio.volume = 0.3;
-                    audio.play().catch(e => console.log('No se pudo reproducir sonido'));
-                } catch(e) {
-                    console.log('Error reproduciendo sonido:', e);
-                }
-            } else {
-                console.log('⚠️ Notificación del navegador NO disponible. Permiso:', Notification.permission);
-            }
+            console.log('📨 EVENTO onValue disparado! Total de notificaciones:', notificationsArray.length);
             
-            // Agregar a la UI
-            const notificationsList = document.getElementById('notifications-list');
-            if (notificationsList) {
-                const emptyMessage = notificationsList.querySelector('p');
-                if (emptyMessage) {
-                    emptyMessage.remove();
+            // Encontrar notificaciones nuevas (posteriores al startTime)
+            const newNotifications = notificationsArray.filter(n => 
+                n.timestamp > startTime && !n.read
+            );
+            
+            console.log('🆕 Notificaciones nuevas encontradas:', newNotifications.length);
+            
+            // Procesar cada notificación nueva
+            newNotifications.forEach(notification => {
+                console.log('🔔🔔🔔 NUEVA NOTIFICACIÓN DETECTADA!');
+                console.log('  ID:', notification.key);
+                console.log('  Tipo:', notification.type);
+                console.log('  Mensaje:', notification.message);
+                console.log('  De:', notification.user?.displayName || 'Desconocido');
+                
+                // Mostrar notificación del navegador
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    let title = '🔔 CryptoSocial';
+                    
+                    switch(notification.type) {
+                        case 'like':
+                            title = '💖 Nuevo Like';
+                            break;
+                        case 'comment':
+                            title = '💬 Nuevo Mensaje';
+                            break;
+                        case 'follow':
+                            title = '👤 Nuevo Seguidor';
+                            break;
+                    }
+                    
+                    console.log('📢 Mostrando notificación del navegador:', title);
+                    
+                    const userName = notification.user?.displayName || 'Alguien';
+                    const userPhoto = notification.user?.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName);
+                    
+                    new Notification(title, {
+                        body: notification.message,
+                        icon: userPhoto,
+                        tag: 'cryptosocial-' + notification.key,
+                        requireInteraction: false
+                    });
+                    
+                    // Sonido
+                    try {
+                        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvHZiTYIGGS57OihUBELTKXh8bllHgU2jdXzzn0pBSp+zPLaizsKGGC37OmjTxALTKTh8bllHwU1i9T0z4AmBSh6y/HajDwKF1247OmiTRAKSqPg8blnHwU0i9T0z4IlBSh6yvLbjTsKGF+37OmiTxEKSqLf8blmHwU0jNP0z4EmBSh5y/HajDwKGGC37OmiTxAKSqPg8bdoHgU1i9P0zoElBSh6y/HajTsLGF+37OmiTxAKSqPg8bllHwU1i9T0z4ElBSh6yvLajTwKF1+37OmiTxAKSqPg8bllHwU1i9T0z4EmBSh6yvLbjTwKF1+37OmiUBAKSqPg8bllHwU1i9T0z4EmBSh5yvLbjTwKF1247OmiUBEKSaLg8blmHwU1i9Ty0IEmBSh6yvLbjTwKGF+37OmiTxEKSaPf8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLajDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiTxEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8bllHgU1i9T0z4EmBSh6yvLbjDwKGF+37OmiUBEKSaPg8Q==');
+                        audio.volume = 0.3;
+                        audio.play().catch(e => console.log('No se pudo reproducir sonido'));
+                    } catch(e) {
+                        console.log('Error sonido:', e);
+                    }
+                } else {
+                    console.log('⚠️ Notificación navegador NO disponible. Permiso:', Notification.permission);
                 }
                 
-                renderNotification(notification);
-                unreadNotifications++;
-                updateNotificationBadge();
-                
-                console.log('✅ Notificación agregada a la UI. Total sin leer:', unreadNotifications);
-            }
+                // Agregar a la UI
+                const notificationsList = document.getElementById('notifications-list');
+                if (notificationsList) {
+                    const emptyMessage = notificationsList.querySelector('p');
+                    if (emptyMessage) emptyMessage.remove();
+                    
+                    renderNotification(notification);
+                    unreadNotifications++;
+                    updateNotificationBadge();
+                    
+                    console.log('✅ Notificación agregada a la UI. Total sin leer:', unreadNotifications);
+                }
+            });
         } else {
-            console.log('⏭️ Notificación ignorada (antigua o leída)');
+            console.log('📭 No hay notificaciones en Firebase');
         }
     });
     
@@ -412,4 +418,3 @@ console.log('✅ Notification functions exposed:', {
     loadNotificationsFromFirebase: typeof window.loadNotificationsFromFirebase,
     addNotification: typeof window.addNotification
 });
-
