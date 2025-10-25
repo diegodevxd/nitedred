@@ -47,8 +47,18 @@ window.onFirebaseAuthStateChanged = function(user) {
         } else {
             console.error('❌ window.loadNotificationsFromFirebase is not defined!');
         }
-        // Request push notification permission
+        // Request push notification permission & initialize FCM
         setTimeout(() => requestNotificationPermission(), 1200);
+        // Initialize FCM for background notifications
+        setTimeout(async () => {
+            try {
+                const { initializeFCM } = await import('./modules/fcm-handler.js');
+                await initializeFCM();
+                console.log('✅ FCM inicializado para notificaciones en segundo plano');
+            } catch (error) {
+                console.log('⚠️ No se pudo inicializar FCM:', error.message);
+            }
+        }, 1300);
     } else {
         // User signed out, go to login
         showSection('login');
@@ -2735,6 +2745,5 @@ function sendPushNotification(title, options = {}) {
 // Expose to window
 window.requestNotificationPermission = requestNotificationPermission;
 window.sendPushNotification = sendPushNotification;
-
 
 
