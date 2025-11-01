@@ -248,7 +248,13 @@ function showSection(sectionName) {
     
     // Load news when showing news section
     if (sectionName === 'news') {
-        loadCryptoNews();
+        setTimeout(() => {
+            if (window.loadCryptoNews && typeof window.loadCryptoNews === 'function') {
+                window.loadCryptoNews();
+            } else {
+                console.error('❌ loadCryptoNews function not available');
+            }
+        }, 300);
     }
     
     // Load chats when showing chat section
@@ -1814,8 +1820,6 @@ window.showToast = showToast;
 window.loadSavedPosts = loadSavedPosts;
 window.loadSavedStories = loadSavedStories;
 window.openStoryUpload = openStoryUpload;
-window.loadCryptoNews = loadCryptoNews;
-window.openNewsArticle = openNewsArticle;
 window.showCryptoChart = showCryptoChart;
 window.hideCryptoChart = hideCryptoChart;
 window.toggleFollow = toggleFollow;
@@ -2946,154 +2950,6 @@ function initTradingViewChart(symbol) {
             </div>
         `;
     }
-}
-
-// ============================================
-// NEWS FUNCTIONS (NewsAPI)
-// ============================================
-
-const NEWS_API_KEY = '91a86a73df094c3aa37737488f272d31';
-let newsCache = null;
-let newsCacheTime = null;
-const NEWS_CACHE_DURATION = 300000; // 5 minutes
-
-// Load crypto news from NewsAPI
-async function loadCryptoNews() {
-    const loadingElement = document.getElementById('news-loading');
-    const containerElement = document.getElementById('news-container');
-    const errorElement = document.getElementById('news-error');
-    
-    // Check cache first
-    const now = Date.now();
-    if (newsCache && newsCacheTime && (now - newsCacheTime < NEWS_CACHE_DURATION)) {
-        displayNews(newsCache);
-        return;
-    }
-    
-    // Show loading
-    if (loadingElement) loadingElement.classList.remove('hidden');
-    if (containerElement) containerElement.classList.add('hidden');
-    if (errorElement) errorElement.classList.add('hidden');
-    
-    try {
-        // Use CryptoCompare News API (completely free, no key required)
-        const response = await fetch(
-            'https://min-api.cryptocompare.com/data/v2/news/?lang=EN&categories=BTC,ETH,Trading,Blockchain'
-        );
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.Data && data.Data.length > 0) {
-            // Transform CryptoCompare data to match our format
-            const articles = data.Data.slice(0, 15).map(item => ({
-                title: item.title,
-                description: item.body.substring(0, 150) + '...',
-                url: item.url || item.guid,
-                urlToImage: item.imageurl || 'https://via.placeholder.com/400x200/667eea/ffffff?text=Crypto+News',
-                publishedAt: new Date(item.published_on * 1000).toISOString(),
-                source: { name: item.source_info?.name || item.source || 'CryptoCompare' }
-            }));
-            
-            newsCache = articles;
-            newsCacheTime = now;
-            displayNews(articles);
-        } else {
-            throw new Error('No articles found');
-        }
-        
-    } catch (error) {
-        console.error('Error loading news:', error);
-        
-        if (loadingElement) loadingElement.classList.add('hidden');
-        if (errorElement) errorElement.classList.remove('hidden');
-    }
-}
-
-// Display news articles
-function displayNews(articles) {
-    const loadingElement = document.getElementById('news-loading');
-    const containerElement = document.getElementById('news-container');
-    const errorElement = document.getElementById('news-error');
-    
-    if (loadingElement) loadingElement.classList.add('hidden');
-    if (errorElement) errorElement.classList.add('hidden');
-    if (!containerElement) return;
-    
-    containerElement.classList.remove('hidden');
-    containerElement.innerHTML = '';
-    
-    articles.forEach((article, index) => {
-        const newsItem = document.createElement('div');
-        newsItem.className = 'glass-effect rounded-xl p-4 hover:bg-white hover:bg-opacity-10 transition-all cursor-pointer';
-        
-        // Get time ago
-        const publishedDate = new Date(article.publishedAt);
-        const timeAgo = getNewsTimeAgo(publishedDate);
-        
-        // Random gradient for variety
-        const gradients = [
-            'from-purple-500 to-pink-500',
-            'from-blue-500 to-cyan-500',
-            'from-green-500 to-emerald-500',
-            'from-orange-500 to-red-500',
-            'from-indigo-500 to-purple-500',
-            'from-pink-500 to-rose-500'
-        ];
-        const gradient = gradients[index % gradients.length];
-        
-        newsItem.innerHTML = `
-            <div class="relative rounded-lg h-48 mb-3 overflow-hidden">
-                ${article.urlToImage 
-                    ? `<img src="${article.urlToImage}" alt="${article.title}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<div class=\\'bg-gradient-to-r ${gradient} h-full flex items-center justify-center\\'><i class=\\'fas fa-newspaper text-white text-3xl\\'></i></div>';">`
-                    : `<div class="bg-gradient-to-r ${gradient} h-full flex items-center justify-center"><i class="fas fa-newspaper text-white text-3xl"></i></div>`
-                }
-                ${article.source?.name ? `
-                    <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded-full">
-                        ${article.source.name}
-                    </div>
-                ` : ''}
-            </div>
-            <h3 class="text-white font-semibold mb-2 line-clamp-2">${article.title}</h3>
-            <p class="text-white text-opacity-70 text-sm mb-3 line-clamp-3">${article.description || 'No hay descripción disponible.'}</p>
-            <div class="flex justify-between items-center">
-                <span class="text-white text-opacity-60 text-xs">${timeAgo}</span>
-                <button onclick="openNewsArticle('${article.url.replace(/'/g, "\\'")}', event)" class="text-blue-400 hover:text-blue-300 transition-colors">
-                    <i class="fas fa-external-link-alt"></i>
-                </button>
-            </div>
-        `;
-        
-        // Click to open article
-        newsItem.addEventListener('click', (e) => {
-            if (!e.target.closest('button')) {
-                window.open(article.url, '_blank');
-            }
-        });
-        
-        containerElement.appendChild(newsItem);
-    });
-}
-
-// Open news article in new tab
-function openNewsArticle(url, event) {
-    if (event) event.stopPropagation();
-    window.open(url, '_blank');
-}
-
-// Get time ago for news articles
-function getNewsTimeAgo(date) {
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000); // seconds
-    
-    if (diff < 60) return 'ahora mismo';
-    if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
-    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} días`;
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
 // ==================== PUSH NOTIFICATIONS ====================
