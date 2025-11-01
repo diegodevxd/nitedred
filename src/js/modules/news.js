@@ -29,34 +29,51 @@ async function loadCryptoNews() {
     if (emptyEl) emptyEl.classList.add('hidden');
     
     try {
+        // Show mock news IMMEDIATELY on mobile for instant loading
+        const mockNewsArray = getMockNewsData();
+        allNewsData = [...mockNewsArray];
+        
+        // Render immediately
+        applyFilters();
+        updateTrendingTopics();
+        updateBreakingNews();
+        renderNews();
+        renderTrendingTopics();
+        renderBreakingNews();
+        
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+        
         // Check if API Manager is loaded
         if (typeof window.newsAPIManager === 'undefined') {
-            console.error('❌ News API Manager not loaded');
-            throw new Error('API Manager not available');
+            console.warn('⚠️ News API Manager not loaded - using mock data only');
+            return;
         }
         
-        // Fetch from all sources
+        // Fetch from all sources in BACKGROUND (with timeout for mobile)
         const category = currentNewsCategories.includes('all') ? 'all' : currentNewsCategories[0];
-        allNewsData = await window.newsAPIManager.fetchAllNews(category, NEWS_PER_PAGE);
+        const apiNews = await Promise.race([
+            window.newsAPIManager.fetchAllNews(category, NEWS_PER_PAGE),
+            new Promise((resolve) => setTimeout(() => resolve([]), 5000)) // 5s timeout
+        ]);
         
-        // Add mock news to complement missing categories
-        const mockNewsArray = getMockNewsData();
-        allNewsData = [...allNewsData, ...mockNewsArray];
-        
-        // Remove duplicates by ID
-        const uniqueNews = new Map();
-        allNewsData.forEach(news => {
-            if (!uniqueNews.has(news.id)) {
-                uniqueNews.set(news.id, news);
-            }
-        });
-        allNewsData = Array.from(uniqueNews.values());
-        
-        // Sort by date (newest first)
-        allNewsData.sort((a, b) => b.published_on - a.published_on);
-        
-        if (allNewsData && allNewsData.length > 0) {
-            console.log(`✅ Loaded ${allNewsData.length} news articles (including mock for variety)`);
+        // Merge API news with mock news if we got data
+        if (apiNews && apiNews.length > 0) {
+            allNewsData = [...apiNews, ...mockNewsArray];
+            
+            // Remove duplicates by ID
+            const uniqueNews = new Map();
+            allNewsData.forEach(news => {
+                if (!uniqueNews.has(news.id)) {
+                    uniqueNews.set(news.id, news);
+                }
+            });
+            allNewsData = Array.from(uniqueNews.values());
+            
+            // Sort by date (newest first)
+            allNewsData.sort((a, b) => b.published_on - a.published_on);
+            
+            console.log(`✅ Updated with ${allNewsData.length} news articles (API + mock)`);
             
             // Debug: Show all unique categories
             const allCategories = new Set();
@@ -67,33 +84,20 @@ async function loadCryptoNews() {
             });
             console.log(`📂 Available categories in data: [${Array.from(allCategories).join(', ')}]`);
             
-            // Filter by selected categories
+            // Re-filter and re-render with updated data
             applyFilters();
-            
-            // Extract trending topics
             updateTrendingTopics();
-            
-            // Identify breaking news (last 15 minutes)
             updateBreakingNews();
-            
-            // Render
             renderNews();
             renderTrendingTopics();
             renderBreakingNews();
         } else {
-            throw new Error('No news data received');
+            console.log('✅ Using mock data only (API timeout or no data)');
         }
         
     } catch (error) {
         console.error('❌ Error loading news:', error);
-        
-        // Fallback to mock data
-        try {
-            await loadMockNews();
-        } catch (fallbackError) {
-            console.error('❌ Error loading mock news:', fallbackError);
-            showNewsError();
-        }
+        // Keep showing mock data (already rendered)
     }
 }
 

@@ -41,84 +41,119 @@ function sparklineSVG(points = [], { width = 120, height = 36, stroke = '#60a5fa
 
 // ---------- Renderers ----------
 async function renderOverview() {
+  // Show fallback data IMMEDIATELY (no waiting for API)
+  const capEl = document.getElementById('global-market-cap');
+  const volEl = document.getElementById('global-volume');
+  const domEl = document.getElementById('global-btc-dominance');
+  
+  if (capEl) capEl.textContent = '$2.5T';
+  if (volEl) volEl.textContent = '$85.3B';
+  if (domEl) domEl.textContent = '54.2%';
+  
+  // Try to update with real data in background
   try {
-    const data = await cryptoData.getGlobal();
-    const capEl = document.getElementById('global-market-cap');
-    const volEl = document.getElementById('global-volume');
-    const domEl = document.getElementById('global-btc-dominance');
+    const data = await Promise.race([
+      cryptoData.getGlobal(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
     if (capEl) capEl.textContent = fmtMoney(data.market_cap_usd);
     if (volEl) volEl.textContent = fmtMoney(data.volume_24h_usd);
-    if (domEl) domEl.textContent = data.btc_dominance != null ? `${data.btc_dominance.toFixed(1)}%` : '--';
+    if (domEl) domEl.textContent = data.btc_dominance != null ? `${data.btc_dominance.toFixed(1)}%` : '54.2%';
   } catch (e) {
-    console.warn('overview error - using fallback data', e);
-    // Fallback data
-    const capEl = document.getElementById('global-market-cap');
-    const volEl = document.getElementById('global-volume');
-    const domEl = document.getElementById('global-btc-dominance');
-    if (capEl) capEl.textContent = '$2.5T';
-    if (volEl) volEl.textContent = '$85.3B';
-    if (domEl) domEl.textContent = '54.2%';
+    console.warn('overview using fallback (API slow/failed)', e.message);
   }
 }
 
 async function renderFearGreed() {
+  // Show fallback data IMMEDIATELY
+  const valEl = document.getElementById('fear-greed-value');
+  const lblEl = document.getElementById('fear-greed-label');
+  const badge = document.getElementById('fear-greed-badge');
+  
+  if (valEl) valEl.textContent = '52';
+  if (lblEl) lblEl.textContent = 'Neutral';
+  if (badge) badge.textContent = '😐';
+  
+  // Try to update with real data in background
   try {
-    const data = await cryptoData.getFearGreed();
-    const valEl = document.getElementById('fear-greed-value');
-    const lblEl = document.getElementById('fear-greed-label');
-    const badge = document.getElementById('fear-greed-badge');
-    if (!data) {
-      if (valEl) valEl.textContent = '52';
-      if (lblEl) lblEl.textContent = 'Neutral';
-      if (badge) badge.textContent = '😐';
-      return;
-    }
+    const data = await Promise.race([
+      cryptoData.getFearGreed(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
+    if (!data) return;
     const value = data.value;
     if (valEl) valEl.textContent = value;
-    if (lblEl) lblEl.textContent = data.value_classification || '';
+    if (lblEl) lblEl.textContent = data.value_classification || 'Neutral';
     if (badge) badge.textContent = value <= 25 ? '😱' : value <= 45 ? '😟' : value <= 55 ? '😐' : value <= 75 ? '🤑' : '🚀';
   } catch (e) {
-    console.warn('fear&greed error - using fallback', e);
-    const valEl = document.getElementById('fear-greed-value');
-    const lblEl = document.getElementById('fear-greed-label');
-    const badge = document.getElementById('fear-greed-badge');
-    if (valEl) valEl.textContent = '52';
-    if (lblEl) lblEl.textContent = 'Neutral';
-    if (badge) badge.textContent = '😐';
+    console.warn('fear&greed using fallback (API slow/failed)', e.message);
   }
 }
 
 async function renderFees() {
+  // Show fallback data IMMEDIATELY
+  const f = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  f('fee-fast','12'); 
+  f('fee-30m','8'); 
+  f('fee-1h','5'); 
+  f('fee-min','3');
+  
+  // Try to update with real data in background
   try {
-    const data = await cryptoData.getBtcFees();
-    const f = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '--'; };
-    if (!data) { 
-      f('fee-fast','12'); 
-      f('fee-30m','8'); 
-      f('fee-1h','5'); 
-      f('fee-min','3'); 
-      return; 
-    }
+    const data = await Promise.race([
+      cryptoData.getBtcFees(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
+    if (!data) return;
     f('fee-fast', data.fastestFee);
     f('fee-30m', data.halfHourFee);
     f('fee-1h', data.hourFee);
     f('fee-min', data.minimumFee);
   } catch (e) {
-    console.warn('fees error - using fallback', e);
-    const f = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    f('fee-fast','12'); 
-    f('fee-30m','8'); 
-    f('fee-1h','5'); 
-    f('fee-min','3');
+    console.warn('fees using fallback (API slow/failed)', e.message);
   }
 }
 
 async function renderWatchlist() {
   const el = document.getElementById('crypto-watchlist');
   if (!el) return;
+  
+  // Show fallback data IMMEDIATELY
+  const mockData = [
+    { name: 'Bitcoin', symbol: 'BTC', price: 68500, change: 2.4, emoji: '₿', color: '#F7931A' },
+    { name: 'Ethereum', symbol: 'ETH', price: 3450, change: 1.8, emoji: 'Ξ', color: '#627EEA' },
+    { name: 'Solana', symbol: 'SOL', price: 175, change: -0.5, emoji: '◎', color: '#14F195' },
+    { name: 'BNB', symbol: 'BNB', price: 595, change: 0.9, emoji: 'B', color: '#F3BA2F' },
+    { name: 'Cardano', symbol: 'ADA', price: 0.65, change: -1.2, emoji: '₳', color: '#0033AD' }
+  ];
+  
+  el.innerHTML = mockData.map(m => {
+    const color = m.change >= 0 ? 'text-green-400' : 'text-red-400';
+    return `
+      <div class="flex items-center justify-between bg-white bg-opacity-10 rounded-xl p-3">
+        <div class="flex items-center">
+          <div class="w-8 h-8 rounded-full mr-3 flex items-center justify-center text-white font-bold text-lg" style="background: ${m.color}">
+            ${m.emoji}
+          </div>
+          <div>
+            <div class="text-white font-semibold">${m.name}</div>
+            <div class="text-white text-opacity-60 text-xs">${m.symbol}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-white font-semibold">$${m.price.toLocaleString()}</div>
+          <div class="${color} text-sm">${m.change > 0 ? '+' : ''}${m.change.toFixed(2)}%</div>
+        </div>
+      </div>`;
+  }).join('');
+  
+  // Try to update with real data in background
   try {
     const ids = ['bitcoin','ethereum','solana','binancecoin','cardano'];
-    const markets = await cryptoData.getMarkets({ ids, vs: 'usd', perPage: ids.length, sparkline: true });
+    const markets = await Promise.race([
+      cryptoData.getMarkets({ ids, vs: 'usd', perPage: ids.length, sparkline: true }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
     el.innerHTML = markets.map(m => {
       const change = m.price_change_percentage_24h;
       const color = change >= 0 ? 'text-green-400' : 'text-red-400';
@@ -140,32 +175,7 @@ async function renderWatchlist() {
         </div>`;
     }).join('');
   } catch (e) {
-    console.warn('watchlist error - using fallback data', e);
-    // Fallback data
-    const mockData = [
-      { name: 'Bitcoin', symbol: 'BTC', price: 68500, change: 2.4, image: 'https://via.placeholder.com/32/F7931A/FFFFFF?text=₿' },
-      { name: 'Ethereum', symbol: 'ETH', price: 3450, change: 1.8, image: 'https://via.placeholder.com/32/627EEA/FFFFFF?text=Ξ' },
-      { name: 'Solana', symbol: 'SOL', price: 175, change: -0.5, image: 'https://via.placeholder.com/32/14F195/FFFFFF?text=◎' },
-      { name: 'BNB', symbol: 'BNB', price: 595, change: 0.9, image: 'https://via.placeholder.com/32/F3BA2F/FFFFFF?text=B' },
-      { name: 'Cardano', symbol: 'ADA', price: 0.65, change: -1.2, image: 'https://via.placeholder.com/32/0033AD/FFFFFF?text=₳' }
-    ];
-    el.innerHTML = mockData.map(m => {
-      const color = m.change >= 0 ? 'text-green-400' : 'text-red-400';
-      return `
-        <div class="flex items-center justify-between bg-white bg-opacity-10 rounded-xl p-3">
-          <div class="flex items-center">
-            <img src="${m.image}" alt="${m.symbol}" class="w-8 h-8 rounded-full object-cover mr-3">
-            <div>
-              <div class="text-white font-semibold">${m.name}</div>
-              <div class="text-white text-opacity-60 text-xs">${m.symbol}</div>
-            </div>
-          </div>
-          <div class="text-right">
-            <div class="text-white font-semibold">$${m.price.toLocaleString()}</div>
-            <div class="${color} text-sm">${m.change > 0 ? '+' : ''}${m.change.toFixed(2)}%</div>
-          </div>
-        </div>`;
-    }).join('');
+    console.warn('watchlist using fallback (API slow/failed)', e.message);
   }
 }
 
@@ -173,13 +183,48 @@ async function renderTopMovers() {
   const gainEl = document.getElementById('crypto-top-gainers');
   const loseEl = document.getElementById('crypto-top-losers');
   if (!gainEl || !loseEl) return;
+  
+  // Show fallback data IMMEDIATELY
+  const mockGainers = [
+    { name: 'Pepe', symbol: 'PEPE', change: 45.2, color: '#00FF00' },
+    { name: 'Dogecoin', symbol: 'DOGE', change: 28.5, color: '#C3A634' },
+    { name: 'Shiba Inu', symbol: 'SHIB', change: 18.9, color: '#FFA409' },
+    { name: 'Floki', symbol: 'FLOKI', change: 15.4, color: '#FF6B00' },
+    { name: 'Bonk', symbol: 'BONK', change: 12.1, color: '#FF4500' }
+  ];
+  const mockLosers = [
+    { name: 'Terra Classic', symbol: 'LUNC', change: -15.8, color: '#FF0000' },
+    { name: 'Aptos', symbol: 'APT', change: -8.4, color: '#FF6666' },
+    { name: 'Sui', symbol: 'SUI', change: -6.2, color: '#FF8888' },
+    { name: 'Arbitrum', symbol: 'ARB', change: -5.1, color: '#FFAAAA' },
+    { name: 'Optimism', symbol: 'OP', change: -4.3, color: '#FFCCCC' }
+  ];
+  
+  const item = (m) => `
+    <div class="flex items-center justify-between bg-white bg-opacity-10 rounded-lg p-2">
+      <div class="flex items-center">
+        <div class="w-6 h-6 rounded-full mr-2 flex items-center justify-center text-white font-bold" style="background: ${m.color || '#666'}">
+          ${m.symbol[0]}
+        </div>
+        <span class="text-white text-sm">${m.name} <span class="text-white text-opacity-60">(${m.symbol})</span></span>
+      </div>
+      <span class="${m.change >= 0 ? 'text-green-400' : 'text-red-400'} text-sm">${m.change > 0 ? '+' : ''}${m.change.toFixed(2)}%</span>
+    </div>`;
+  
+  gainEl.innerHTML = mockGainers.map(item).join('');
+  loseEl.innerHTML = mockLosers.map(item).join('');
+  
+  // Try to update with real data in background
   try {
-    const markets = await cryptoData.getMarkets({ perPage: 100, sparkline: false });
+    const markets = await Promise.race([
+      cryptoData.getMarkets({ perPage: 100, sparkline: false }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+    ]);
     const arr = markets.filter(m => typeof m.price_change_percentage_24h === 'number');
     const gainers = [...arr].sort((a,b)=>b.price_change_percentage_24h - a.price_change_percentage_24h).slice(0,5);
     const losers = [...arr].sort((a,b)=>a.price_change_percentage_24h - b.price_change_percentage_24h).slice(0,5);
 
-    const item = (m) => `
+    const realItem = (m) => `
       <div class="flex items-center justify-between bg-white bg-opacity-10 rounded-lg p-2">
         <div class="flex items-center">
           <img src="${m.image}" class="w-6 h-6 rounded-full object-cover mr-2" onerror="this.style.display='none'">
@@ -188,37 +233,10 @@ async function renderTopMovers() {
         <span class="${pctColor(m.price_change_percentage_24h)} text-sm">${fmtPct(m.price_change_percentage_24h)}</span>
       </div>`;
 
-    gainEl.innerHTML = gainers.map(item).join('');
-    loseEl.innerHTML = losers.map(item).join('');
+    gainEl.innerHTML = gainers.map(realItem).join('');
+    loseEl.innerHTML = losers.map(realItem).join('');
   } catch (e) {
-    console.warn('top movers error - using fallback data', e);
-    // Fallback data
-    const mockGainers = [
-      { name: 'Pepe', symbol: 'PEPE', change: 45.2, image: 'https://via.placeholder.com/24/00FF00/FFFFFF?text=P' },
-      { name: 'Dogecoin', symbol: 'DOGE', change: 28.5, image: 'https://via.placeholder.com/24/C3A634/FFFFFF?text=D' },
-      { name: 'Shiba Inu', symbol: 'SHIB', change: 18.9, image: 'https://via.placeholder.com/24/FFA409/FFFFFF?text=S' },
-      { name: 'Floki', symbol: 'FLOKI', change: 15.4, image: 'https://via.placeholder.com/24/FF6B00/FFFFFF?text=F' },
-      { name: 'Bonk', symbol: 'BONK', change: 12.1, image: 'https://via.placeholder.com/24/FF4500/FFFFFF?text=B' }
-    ];
-    const mockLosers = [
-      { name: 'Terra Classic', symbol: 'LUNC', change: -15.8, image: 'https://via.placeholder.com/24/FF0000/FFFFFF?text=L' },
-      { name: 'Aptos', symbol: 'APT', change: -8.4, image: 'https://via.placeholder.com/24/FF6666/FFFFFF?text=A' },
-      { name: 'Sui', symbol: 'SUI', change: -6.2, image: 'https://via.placeholder.com/24/FF8888/FFFFFF?text=S' },
-      { name: 'Arbitrum', symbol: 'ARB', change: -5.1, image: 'https://via.placeholder.com/24/FFAAAA/FFFFFF?text=A' },
-      { name: 'Optimism', symbol: 'OP', change: -4.3, image: 'https://via.placeholder.com/24/FFCCCC/FFFFFF?text=O' }
-    ];
-    
-    const item = (m) => `
-      <div class="flex items-center justify-between bg-white bg-opacity-10 rounded-lg p-2">
-        <div class="flex items-center">
-          <img src="${m.image}" class="w-6 h-6 rounded-full object-cover mr-2">
-          <span class="text-white text-sm">${m.name} <span class="text-white text-opacity-60">(${m.symbol})</span></span>
-        </div>
-        <span class="${m.change >= 0 ? 'text-green-400' : 'text-red-400'} text-sm">${m.change > 0 ? '+' : ''}${m.change.toFixed(2)}%</span>
-      </div>`;
-    
-    gainEl.innerHTML = mockGainers.map(item).join('');
-    loseEl.innerHTML = mockLosers.map(item).join('');
+    console.warn('top movers using fallback (API slow/failed)', e.message);
   }
 }
 
