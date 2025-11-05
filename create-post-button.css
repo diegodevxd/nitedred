@@ -1,0 +1,52 @@
+/* CSS adicional para el botón flotante de crear post */
+
+/* Asegurar que el botón flotante esté siempre visible cuando el usuario esté logueado */
+#create-post-fab {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+#create-post-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(139, 92, 246, 0.5);
+}
+
+/* Ocultar el botón cuando estemos en la sección de login o register */
+#login-section ~ * #create-post-fab,
+body:not(.user-logged-in) #create-post-fab {
+    display: none;
+}
+
+/* Asegurar visibilidad en modo móvil */
+@media (max-width: 768px) {
+    #create-post-fab {
+        bottom: 80px; /* Más espacio desde abajo en móvil */
+        right: 16px;
+        width: 56px;
+        height: 56px;
+    }
+}
+
+/* Cuando la app esté en modo login, ocultar el botón */
+[data-section="login"] #create-post-fab,
+[data-section="register"] #create-post-fab {
+    display: none !important;
+}
+
+/* CRITICAL: Cloudinary widget z-index fixes */
+.cloudinary-widget,
+.cloudinary-widget *,
+[class*="cloudinary"],
+[id*="cloudinary"] {
+    z-index: 99999 !important;
+}
+
+/* Override any conflicting z-index */
+.cloudinary-widget iframe {
+    z-index: 99999 !important;
+}
+
+/* Ensure Cloudinary overlay is above everything */
+body > div[style*="z-index"] {
+    z-index: 99999 !important;
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Auth - NITEDRED</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover {
+            transform: scale(1.05);
+            transition: all 0.3s;
+        }
+        .user-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+        }
+        img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Test Firebase Authentication</h1>
+        <p>Prueba la integración de Firebase con Google Sign-In</p>
+
+        <div id="status"></div>
+
+        <div id="login-section">
+            <button id="loginBtn">🔐 Login con Google</button>
+        </div>
+
+        <div id="user-section" class="hidden">
+            <div class="user-info">
+                <h3>Usuario Autenticado:</h3>
+                <img id="userPhoto" src="" alt="User Photo">
+                <p><strong>Nombre:</strong> <span id="userName"></span></p>
+                <p><strong>Email:</strong> <span id="userEmail"></span></p>
+                <p><strong>UID:</strong> <span id="userUid"></span></p>
+            </div>
+            <button id="logoutBtn">🚪 Cerrar Sesión</button>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 10px;">
+            <h4>📋 Instrucciones:</h4>
+            <ol style="text-align: left;">
+                <li>Asegúrate de estar usando un servidor local (no file://)</li>
+                <li>Haz clic en "Login con Google"</li>
+                <li>Selecciona tu cuenta de Google en el popup</li>
+                <li>Verifica que tus datos aparezcan correctamente</li>
+                <li>Prueba cerrar sesión</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBne6Zpr5qKLnNJr6SUEh4PGpdnGqyWPwo",
+            authDomain: "nitedcrypto-da32a.firebaseapp.com",
+            projectId: "nitedcrypto-da32a",
+            storageBucket: "nitedcrypto-da32a.firebasestorage.app",
+            messagingSenderId: "85577171483",
+            appId: "1:85577171483:web:805aaa524d4727c4bb2ebe"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // DOM elements
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginSection = document.getElementById('login-section');
+        const userSection = document.getElementById('user-section');
+        const status = document.getElementById('status');
+
+        // Show status message
+        function showStatus(message, type) {
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                status.innerHTML = '';
+            }, 5000);
+        }
+
+        // Update UI with user info
+        function updateUI(user) {
+            if (user) {
+                document.getElementById('userName').textContent = user.displayName;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userUid').textContent = user.uid;
+                document.getElementById('userPhoto').src = user.photoURL || 'https://via.placeholder.com/80';
+                
+                loginSection.classList.add('hidden');
+                userSection.classList.remove('hidden');
+                
+                console.log('Usuario autenticado:', user);
+            } else {
+                loginSection.classList.remove('hidden');
+                userSection.classList.add('hidden');
+            }
+        }
+
+        // Auth state observer
+        onAuthStateChanged(auth, (user) => {
+            updateUI(user);
+            if (user) {
+                showStatus('✅ Sesión iniciada correctamente', 'success');
+            }
+        });
+
+        // Login with Google
+        loginBtn.addEventListener('click', async () => {
+            try {
+                showStatus('⏳ Abriendo popup de Google...', 'success');
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                showStatus(`✅ ¡Bienvenido ${user.displayName}!`, 'success');
+                updateUI(user);
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showStatus('✅ Sesión cerrada correctamente', 'success');
+                updateUI(null);
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error al cerrar sesión: ${error.message}`, 'error');
+            }
+        });
+
+        // Show initial status
+        showStatus('🔥 Firebase inicializado correctamente', 'success');
+    </script>
+</body>
+</html>

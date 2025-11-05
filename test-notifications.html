@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notificaciones - NITEDRED</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-panel {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #0f3460;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #e94560;
+        }
+        .log {
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { color: #4ade80; }
+        .error { color: #ef4444; }
+        .info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h1>🔔 Test Sistema de Notificaciones</h1>
+    
+    <div class="test-panel">
+        <h2>1. Verificar Estado</h2>
+        <button onclick="checkStatus()">Check Status</button>
+        <button onclick="checkPermissions()">Check Permissions</button>
+        <button onclick="checkFirebase()">Check Firebase</button>
+    </div>
+    
+    <div class="test-panel">
+        <h2>2. Probar Funciones</h2>
+        <button onclick="loadNotifications()">Load Notifications</button>
+        <button onclick="resetListener()">Reset Listener</button>
+        <button onclick="requestPerms()">Request Permissions</button>
+    </div>
+    
+    <div class="test-panel">
+        <h2>3. Enviar Test</h2>
+        <button onclick="sendTestNotification('like')">Test Like</button>
+        <button onclick="sendTestNotification('comment')">Test Comment</button>
+        <button onclick="sendTestNotification('follow')">Test Follow</button>
+    </div>
+    
+    <div class="test-panel">
+        <h2>4. Verificar DOM</h2>
+        <button onclick="checkDOM()">Check Notifications List</button>
+        <button onclick="checkBadge()">Check Badge</button>
+        <button onclick="inspectContainer()">Inspect Container</button>
+    </div>
+    
+    <div class="test-panel">
+        <h2>Console Log:</h2>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const className = type;
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function checkStatus() {
+            log('=== CHECKING STATUS ===', 'info');
+            log('Window functions available:', 'info');
+            log('  loadNotificationsFromFirebase: ' + (typeof window.loadNotificationsFromFirebase), window.loadNotificationsFromFirebase ? 'success' : 'error');
+            log('  addNotification: ' + (typeof window.addNotification), window.addNotification ? 'success' : 'error');
+            log('  resetNotificationListener: ' + (typeof window.resetNotificationListener), window.resetNotificationListener ? 'success' : 'error');
+            log('  currentUser: ' + (window.currentUser ? window.currentUser.uid : 'Not logged in'), window.currentUser ? 'success' : 'error');
+        }
+
+        function checkPermissions() {
+            log('=== CHECKING PERMISSIONS ===', 'info');
+            if ('Notification' in window) {
+                log('Notification API: Supported', 'success');
+                log('Permission status: ' + Notification.permission, Notification.permission === 'granted' ? 'success' : 'error');
+            } else {
+                log('Notification API: NOT supported', 'error');
+            }
+            
+            if ('serviceWorker' in navigator) {
+                log('Service Worker: Supported', 'success');
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                    log('Registered SWs: ' + regs.length, regs.length > 0 ? 'success' : 'error');
+                });
+            } else {
+                log('Service Worker: NOT supported', 'error');
+            }
+        }
+
+        async function checkFirebase() {
+            log('=== CHECKING FIREBASE ===', 'info');
+            if (!window.currentUser) {
+                log('ERROR: No user logged in!', 'error');
+                return;
+            }
+            
+            const userId = window.currentUser.uid;
+            log('User ID: ' + userId, 'success');
+            
+            try {
+                const { database, ref, get } = window.firebaseDB;
+                const notifRef = ref(database, `notifications/${userId}`);
+                const snapshot = await get(notifRef);
+                
+                if (snapshot.exists()) {
+                    const notifs = snapshot.val();
+                    log('Notifications in Firebase: ' + Object.keys(notifs).length, 'success');
+                    log('Sample:', 'info');
+                    const sample = Object.values(notifs)[0];
+                    log(JSON.stringify(sample, null, 2), 'info');
+                } else {
+                    log('No notifications in Firebase', 'error');
+                }
+            } catch (error) {
+                log('ERROR: ' + error.message, 'error');
+            }
+        }
+
+        async function loadNotifications() {
+            log('=== LOADING NOTIFICATIONS ===', 'info');
+            if (window.loadNotificationsFromFirebase) {
+                try {
+                    await window.loadNotificationsFromFirebase();
+                    log('Load function executed', 'success');
+                } catch (error) {
+                    log('ERROR: ' + error.message, 'error');
+                }
+            } else {
+                log('ERROR: loadNotificationsFromFirebase not found!', 'error');
+            }
+        }
+
+        function resetListener() {
+            log('=== RESETTING LISTENER ===', 'info');
+            if (window.resetNotificationListener) {
+                window.resetNotificationListener();
+                log('Listener reset successful', 'success');
+            } else {
+                log('ERROR: resetNotificationListener not found!', 'error');
+            }
+        }
+
+        async function requestPerms() {
+            log('=== REQUESTING PERMISSIONS ===', 'info');
+            if (window.requestNotificationPermission) {
+                const result = await window.requestNotificationPermission();
+                log('Permission result: ' + result, result ? 'success' : 'error');
+            } else {
+                log('ERROR: requestNotificationPermission not found!', 'error');
+            }
+        }
+
+        function sendTestNotification(type) {
+            log('=== SENDING TEST NOTIFICATION ===', 'info');
+            if (!window.currentUser) {
+                log('ERROR: No user logged in!', 'error');
+                return;
+            }
+            
+            if (window.addNotification) {
+                const messages = {
+                    'like': 'Test User le dio like a tu publicación',
+                    'comment': 'Test User comentó en tu publicación',
+                    'follow': 'Test User comenzó a seguirte'
+                };
+                
+                window.addNotification(
+                    type,
+                    messages[type],
+                    { displayName: 'Test User', photoURL: 'image/logo.jpeg' },
+                    window.currentUser.uid
+                );
+                log('Test notification sent: ' + type, 'success');
+            } else {
+                log('ERROR: addNotification not found!', 'error');
+            }
+        }
+
+        function checkDOM() {
+            log('=== CHECKING DOM ===', 'info');
+            const container = document.getElementById('notifications-list');
+            if (container) {
+                log('Container found!', 'success');
+                log('Children count: ' + container.children.length, 'info');
+                log('InnerHTML length: ' + container.innerHTML.length, 'info');
+                log('Visible: ' + (container.offsetParent !== null), container.offsetParent !== null ? 'success' : 'error');
+            } else {
+                log('ERROR: Container NOT found!', 'error');
+            }
+        }
+
+        function checkBadge() {
+            log('=== CHECKING BADGE ===', 'info');
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                log('Badge found!', 'success');
+                log('Display: ' + badge.style.display, 'info');
+                const text = badge.querySelector('span');
+                log('Text: ' + (text ? text.textContent : 'none'), 'info');
+            } else {
+                log('ERROR: Badge NOT found!', 'error');
+            }
+        }
+
+        function inspectContainer() {
+            log('=== INSPECTING CONTAINER ===', 'info');
+            const parent = document.getElementById('notifications-dropdown');
+            if (parent) {
+                log('Parent dropdown found', 'success');
+                log('Classes: ' + parent.className, 'info');
+                log('Visible: ' + !parent.classList.contains('hidden'), parent.classList.contains('hidden') ? 'error' : 'success');
+                
+                const list = document.getElementById('notifications-list');
+                if (list) {
+                    log('List inside parent: YES', 'success');
+                    log('List HTML:', 'info');
+                    log(list.innerHTML.substring(0, 200), 'info');
+                }
+            } else {
+                log('ERROR: Parent dropdown NOT found!', 'error');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('Test page loaded', 'success');
+                log('Run checks manually using buttons above', 'info');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

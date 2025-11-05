@@ -1,0 +1,44 @@
+{
+  "name": "NITEDRED - Red Social Web3",
+  "short_name": "NITEDRED",
+  "description": "La red social definitiva para la comunidad Web3 y criptomonedas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "image/logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "image/logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["social", "entertainment", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "url": "/",
+      "description": "Ver feed de publicaciones"
+    },
+    {
+      "name": "Explorar",
+      "url": "/?section=explore",
+      "description": "Explorar contenido"
+    },
+    {
+      "name": "Perfil",
+      "url": "/?section=profile",
+      "description": "Ver perfil"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}
