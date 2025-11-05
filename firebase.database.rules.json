@@ -6,26 +6,35 @@
     "users": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid",
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid",
         "chats": {
-          ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null"
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid",
+          "$chatId": {
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": "auth != null && auth.uid == $uid"
+          }
         },
         "following": {
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid",
           "$targetUid": {
-            ".read": "auth != null",
-            ".write": "auth != null && auth.uid === $uid"
+            ".read": "auth != null && auth.uid == $uid",
+            ".write": "auth != null && auth.uid == $uid"
           }
         },
         "followers": {
+          ".read": "auth != null",
+          ".write": "auth != null",
           "$followerUid": {
             ".read": "auth != null",
-            ".write": "auth != null && (auth.uid === $uid || auth.uid === $followerUid)"
+            ".write": "auth != null"
           }
         },
         "fcmToken": {
-          ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && auth.uid === $uid"
+          ".read": "auth != null && auth.uid == $uid",
+          ".write": "auth != null && auth.uid == $uid"
         }
       }
     },
@@ -33,21 +42,33 @@
     "following": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid"
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == $uid",
+        "$targetUid": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid == $uid"
+        }
       }
     },
 
     "followers": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid"
+        ".read": "auth != null",
+        ".write": "auth != null",
+        "$followerUid": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
       }
     },
 
     "notifications": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null",
         "$notifId": {
+          ".read": "auth != null && auth.uid == $uid",
           ".write": "auth != null"
         }
       }
@@ -55,45 +76,84 @@
 
     "posts": {
       ".read": "auth != null",
-      ".write": false,
+      ".write": "auth != null",
+      ".indexOn": ["timestamp", "userId"],
       "$postId": {
         ".read": "auth != null",
-        ".write": "auth != null && (!data.exists() && newData.child('userId').val() === auth.uid || data.exists() && data.child('userId').val() === auth.uid)",
+        ".write": "auth != null",
         "likes": {
+          ".read": "auth != null",
           ".write": "auth != null"
         },
         "likedBy": {
+          ".read": "auth != null",
           ".write": "auth != null"
         },
         "comments": {
+          ".read": "auth != null",
           ".write": "auth != null"
         },
         "reactions": {
+          ".read": "auth != null",
           ".write": "auth != null"
         },
         "reactionUsers": {
+          ".read": "auth != null",
           ".write": "auth != null"
         }
       }
     },
 
     "chats": {
+      ".read": "auth != null",
+      ".write": "auth != null",
       "$chatId": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null",
+        "messages": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$messageId": {
+            ".read": "auth != null",
+            ".write": "auth != null"
+          }
+        },
+        "participants": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "lastMessage": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "timestamp": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
       }
     },
 
     "profiles": {
+      ".read": "auth != null",
       "$uid": {
         ".read": "auth != null",
-        ".write": "auth != null && auth.uid === $uid"
+        ".write": "auth != null && auth.uid == $uid"
       }
     },
 
     "stories": {
       ".read": "auth != null",
-      ".write": "auth != null"
+      ".write": "auth != null",
+      ".indexOn": ["timestamp", "userId"],
+      "$storyId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "crypto": {
+      ".read": true,
+      ".write": false
     }
   }
 }
