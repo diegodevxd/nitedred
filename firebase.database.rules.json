@@ -1,0 +1,99 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        "chats": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null"
+        },
+        "following": {
+          "$targetUid": {
+            ".read": "auth != null",
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "followers": {
+          "$followerUid": {
+            ".read": "auth != null",
+            ".write": "auth != null && (auth.uid === $uid || auth.uid === $followerUid)"
+          }
+        },
+        "fcmToken": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      }
+    },
+
+    "following": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "followers": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "notifications": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$notifId": {
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "posts": {
+      ".read": "auth != null",
+      ".write": false,
+      "$postId": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() && newData.child('userId').val() === auth.uid || data.exists() && data.child('userId').val() === auth.uid)",
+        "likes": {
+          ".write": "auth != null"
+        },
+        "likedBy": {
+          ".write": "auth != null"
+        },
+        "comments": {
+          ".write": "auth != null"
+        },
+        "reactions": {
+          ".write": "auth != null"
+        },
+        "reactionUsers": {
+          ".write": "auth != null"
+        }
+      }
+    },
+
+    "chats": {
+      "$chatId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+
+    "profiles": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "stories": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}

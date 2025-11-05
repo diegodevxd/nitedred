@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NITEDRED - Red Social Web3</title>
+    <meta name="description" content="NITEDRED - La red social definitiva para la comunidad Web3 y criptomonedas">
+    <meta name="theme-color" content="#dc2626">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/jpeg" href="image/logo.jpeg">
+    <link rel="shortcut icon" type="image/jpeg" href="image/logo.jpeg">
+    <link rel="apple-touch-icon" href="image/logo.jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="src/css/styles.css" rel="stylesheet">
+    <link href="src/css/themes.css" rel="stylesheet">
+    <link href="src/css/modal-improvements.css" rel="stylesheet">
+    <link href="src/css/dropdown-overlays.css" rel="stylesheet">
+    <link href="src/css/news.css" rel="stylesheet">
+    <link href="search-input-fix.css" rel="stylesheet">
+    <link href="reactions-styles.css" rel="stylesheet">
+    <link href="header-fix.css" rel="stylesheet">
+    <link href="create-post-button.css" rel="stylesheet">
+    <!-- TradingView Widget -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+</head>
+<body class="h-full gradient-bg font-sans">
+    <div id="app" class="h-full flex flex-col">
+        <!-- Header -->
+        <header class="glass-effect p-4 flex justify-between items-center relative z-50">
+            <div class="flex items-center space-x-3">
+                <img src="image/logo.jpeg" alt="NITEDRED Logo" class="w-10 h-10 rounded-full object-cover border-2 border-red-400/30 hover:border-red-400/60 transition-all duration-300">
+                <h1 class="text-white text-2xl font-bold relative z-10">
+                    <span class="bg-gradient-to-r from-red-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">NITED</span><span class="text-red-400">RED</span>
+                </h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Search Icon (unified for all devices) -->
+                <button onclick="toggleMobileSearch()" class="text-white hover:text-pink-400 transition-colors">
+                    <i class="fas fa-search text-xl"></i>
+                </button>
+                
+                <!-- Theme Toggle -->
+                <button onclick="toggleTheme()" id="theme-toggle-btn" class="text-white hover:text-yellow-300 transition-colors" title="Cambiar tema">
+                    <i id="theme-icon" class="fas fa-moon text-xl"></i>
+                </button>
+                
+                <div class="relative">
+                    <button onclick="toggleNotificationsDropdown()" class="relative">
+                        <i class="fas fa-bell text-white text-xl cursor-pointer hover:text-yellow-300 transition-colors"></i>
+                        <div id="notification-badge" class="notification-dot absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                            <span class="text-white text-xs font-bold">5</span>
+                        </div>
+                    </button>
+                    
+                    <!-- Notifications Dropdown -->
+                    <div id="notifications-dropdown" class="notifications-dropdown">
+                        <div class="notifications-header">
+                            <div class="notifications-title">Notificaciones</div>
+                            <button class="mark-all-read-btn" onclick="markAllNotificationsRead()">Marcar todas como leídas</button>
+                        </div>
+                        <div id="notifications-list">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                <div id="header-avatar" class="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full cursor-pointer flex items-center justify-center overflow-hidden" onclick="showSection('profile')">
+                    <span class="text-white text-sm font-bold">U</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="glass-effect p-2">
+            <div class="flex justify-around">
+                <button onclick="showSection('home')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fas fa-home text-xl mb-1"></i>
+                    <span class="text-xs">Inicio</span>
+                </button>
+                <button onclick="showSection('explore')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fas fa-compass text-xl mb-1"></i>
+                    <span class="text-xs">Explorar</span>
+                </button>
+                <button onclick="showSection('crypto')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fab fa-bitcoin text-xl mb-1"></i>
+                    <span class="text-xs">Crypto</span>
+                </button>
+                <button onclick="showSection('news')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fas fa-newspaper text-xl mb-1"></i>
+                    <span class="text-xs">News</span>
+                </button>
+                <button onclick="showSection('chat')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fas fa-comments text-xl mb-1"></i>
+                    <span class="text-xs">Chat</span>
+                </button>
+                <button onclick="showSection('profile')" class="nav-btn flex flex-col items-center p-2 rounded-lg text-white hover:bg-white hover:bg-opacity-20 transition-all">
+                    <i class="fas fa-user text-xl mb-1"></i>
+                    <span class="text-xs">Perfil</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Mobile Search Modal -->
+        <div id="mobile-search-modal" class="fixed inset-0 modal-backdrop-enhanced flex items-start justify-center hidden pt-4" style="z-index: 10500 !important;">
+            <div class="glass-effect modal-enhanced modal-scrollbar rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10501 !important;">
+                <div class="flex items-center justify-between mb-4 modal-header-enhanced">
+                    <h3 class="text-white text-lg font-bold">Buscar</h3>
+                    <button onclick="toggleMobileSearch()" class="text-white modal-close-enhanced hover:text-gray-300 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <input type="text" 
+                           id="mobile-search-input" 
+                           placeholder="Buscar posts, usuarios, hashtags..." 
+                           class="w-full modal-input-enhanced px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                           oninput="handleMobileSearchInput(this.value)"
+                           onfocus="initializeMobileSearch()">
+                </div>
+                
+                <!-- Search Categories -->
+                <div class="search-categories mb-4">
+                    <button class="search-category-btn active" data-category="all" onclick="setMobileSearchCategory('all')">Todo</button>
+                    <button class="search-category-btn" data-category="posts" onclick="setMobileSearchCategory('posts')">Posts</button>
+                    <button class="search-category-btn" data-category="users" onclick="setMobileSearchCategory('users')">Usuarios</button>
+                    <button class="search-category-btn" data-category="hashtags" onclick="setMobileSearchCategory('hashtags')">Hashtags</button>
+                </div>
+                
+                <div id="mobile-search-results" class="search-results-enhanced max-h-96 overflow-y-auto">
+                    <div class="search-empty">
+                        <i class="fas fa-search"></i>
+                        <div>Escribe para buscar posts, usuarios y hashtags</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Results Panel (Legacy - Hidden) -->
+        <div id="search-results-panel" class="fixed top-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl glass-effect rounded-2xl p-4 hidden" style="z-index: 9500 !important; backdrop-filter: blur(20px); background: rgba(0, 0, 0, 0.95); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); display: none !important;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-lg font-bold">Resultados de búsqueda</h3>
+                <button onclick="hideSearchResults()" class="text-white text-opacity-60 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Search Tabs -->
+            <div class="flex space-x-2 mb-4 border-b border-white border-opacity-20">
+                <button onclick="switchSearchTab('all')" class="search-tab-btn px-4 py-2 text-white text-sm font-medium border-b-2 border-pink-400">
+                    Todo
+                </button>
+                <button onclick="switchSearchTab('posts')" class="search-tab-btn px-4 py-2 text-white text-opacity-60 text-sm font-medium hover:text-white">
+                    Posts
+                </button>
+                <button onclick="switchSearchTab('users')" class="search-tab-btn px-4 py-2 text-white text-opacity-60 text-sm font-medium hover:text-white">
+                    Usuarios
+                </button>
+                <button onclick="switchSearchTab('hashtags')" class="search-tab-btn px-4 py-2 text-white text-opacity-60 text-sm font-medium hover:text-white">
+                    Hashtags
+                </button>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="search-results-content" class="space-y-3 max-h-96 overflow-y-auto">
+                <div class="text-center py-8">
+                    <i class="fas fa-search text-white text-opacity-40 text-4xl mb-3"></i>
+                    <p class="text-white text-opacity-60">Escribe para buscar</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Share Modal -->
+        <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index: 10500 !important;">
+            <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10501 !important;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white text-xl font-bold">Compartir Post</h3>
+                    <button onclick="hideShareModal()" class="text-white hover:text-gray-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-3">
+                    <!-- Repost Option -->
+                    <button onclick="repostContent()" class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                        <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-retweet text-white"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-semibold">Repostear</div>
+                            <div class="text-sm text-opacity-60">Compartir en tu feed</div>
+                        </div>
+                    </button>
+                    
+                    <!-- Quote Repost -->
+                    <button onclick="showQuoteModal()" class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                        <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-quote-left text-white"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-semibold">Repostear con comentario</div>
+                            <div class="text-sm text-opacity-60">Agregar tu opinión</div>
+                        </div>
+                    </button>
+                    
+                    <!-- Copy Link -->
+                    <button onclick="copyPostLink()" class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-link text-white"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-semibold">Copiar enlace</div>
+                            <div class="text-sm text-opacity-60">Compartir fuera de la app</div>
+                        </div>
+                    </button>
+                    
+                    <!-- External Share -->
+                    <div class="border-t border-white border-opacity-20 pt-3 mt-3">
+                        <p class="text-white text-sm text-opacity-60 mb-3">Compartir en redes sociales</p>
+                        <div class="flex space-x-3 justify-center">
+                            <button onclick="shareToTwitter()" class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors">
+                                <i class="fab fa-twitter"></i>
+                            </button>
+                            <button onclick="shareToTelegram()" class="w-12 h-12 bg-blue-400 rounded-full flex items-center justify-center text-white hover:bg-blue-500 transition-colors">
+                                <i class="fab fa-telegram"></i>
+                            </button>
+                            <button onclick="shareToWhatsApp()" class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quote Repost Modal -->
+        <div id="quote-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index: 10500 !important;">
+            <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10501 !important;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white text-xl font-bold">Repostear con comentario</h3>
+                    <button onclick="hideQuoteModal()" class="text-white hover:text-gray-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form onsubmit="submitQuoteRepost(event)">
+                    <textarea id="quote-content" 
+                              placeholder="Añade tu comentario..." 
+                              class="w-full h-24 px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none mb-4"></textarea>
+                    
+                    <!-- Original Post Preview -->
+                    <div id="quote-preview" class="glass-effect rounded-xl p-3 mb-4 border-l-4 border-pink-400">
+                        <!-- Original post content will be loaded here -->
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="hideQuoteModal()" class="px-4 py-2 text-white text-opacity-60 hover:text-white">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-2 rounded-full hover:opacity-90">
+                            Repostear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Story Upload Modal -->
+        <div id="story-upload-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index: 10500 !important;">
+            <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10501 !important;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white text-xl font-bold">Subir Story</h3>
+                    <button onclick="hideStoryUpload()" class="text-white hover:text-gray-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <form onsubmit="uploadStoryFixed(event)">
+                    <!-- Story Preview -->
+                    <div id="story-preview" class="w-full h-64 bg-gray-800 bg-opacity-50 rounded-xl mb-4 flex items-center justify-center border-2 border-dashed border-white border-opacity-30 cursor-pointer" onclick="document.getElementById('story-file-input').click()">
+                        <div class="text-center">
+                            <i class="fas fa-plus text-white text-4xl mb-2"></i>
+                            <p class="text-white text-opacity-60">Click para agregar foto/video</p>
+                        </div>
+                    </div>
+                    
+                    <input type="file" id="story-file-input" accept="image/*,video/*" class="hidden" onchange="previewStoryFile()">
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="document.getElementById('story-file-input').click()" class="flex-1 glass-effect rounded-xl p-3 text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-image mr-2"></i>
+                            Seleccionar archivo
+                        </button>
+                        <button type="submit" id="story-upload-btn" class="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:opacity-90 disabled:opacity-50" disabled>
+                            Publicar Story
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Story Viewer Modal -->
+        <div id="story-viewer-modal" class="fixed inset-0 bg-black hidden" style="z-index: 10500 !important;">
+            <!-- Story Header -->
+            <div class="absolute top-0 left-0 right-0 p-4" style="z-index: 10501 !important;">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div id="story-user-avatar" class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white font-bold">U</span>
+                        </div>
+                        <div>
+                            <div id="story-user-name" class="text-white font-semibold">Usuario</div>
+                            <div id="story-timestamp" class="text-white text-opacity-60 text-sm">Hace 2h</div>
+                        </div>
+                    </div>
+                    <button onclick="closeStoryViewer()" class="text-white">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Progress bars -->
+                <div id="story-progress" class="flex space-x-1 mt-3">
+                    <!-- Progress bars will be generated here -->
+                </div>
+            </div>
+            
+            <!-- Story Content -->
+            <div class="h-full flex items-center justify-center">
+                <button onclick="previousStory()" class="absolute left-4 text-white text-3xl hover:text-gray-300 z-10">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                
+                <div id="story-content" class="w-full h-full flex items-center justify-center">
+                    <!-- Story image/video will be loaded here -->
+                </div>
+                
+                <button onclick="nextStory()" class="absolute right-4 text-white text-3xl hover:text-gray-300 z-10">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Create Post Modal (Global) -->
+        <div id="create-home-post-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index: 10500 !important;">
+            <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4" style="z-index: 10501 !important;">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-white text-xl font-bold">Crear Post</h3>
+                    <button onclick="hideCreateHomePost()" class="text-white hover:text-gray-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form onsubmit="createHomePost(event)">
+                    <textarea id="home-post-content" placeholder="¿Qué quieres compartir?" class="w-full h-32 px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none mb-4"></textarea>
+
+                    <!-- Media Preview (estilo historias) -->
+                    <div id="media-preview" class="mb-4 hidden">
+                        <div id="post-media-drop" class="w-full h-56 bg-gray-800 bg-opacity-50 rounded-xl flex items-center justify-center border-2 border-dashed border-white border-opacity-30 cursor-pointer">
+                            <div class="text-center">
+                                <i class="fas fa-plus text-white text-3xl mb-2"></i>
+                                <p class="text-white text-opacity-60 text-sm">Click para agregar foto/video</p>
+                            </div>
+                        </div>
+                        <!-- Hidden native file input for direct upload -->
+                        <input id="home-post-file-input" type="file" accept="image/*,video/*" class="hidden">
+                    </div>
+
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="addMedia('image')" class="flex-1 glass-effect rounded-xl p-3 text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-image mr-2"></i>
+                            Seleccionar archivo
+                        </button>
+                        <button id="home-post-submit" type="submit" class="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:opacity-90 disabled:opacity-50" disabled>
+                            Publicar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notifications Panel (Legacy - Hidden) -->
+        <div id="notifications-panel" class="fixed top-20 right-4 w-80 max-h-96 glass-effect rounded-2xl p-4 hidden" style="z-index: 9400 !important; backdrop-filter: blur(20px); background: rgba(0, 0, 0, 0.95); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); display: none !important;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-white text-lg font-bold">Notificaciones</h3>
+                <button onclick="clearAllNotifications()" class="text-white text-opacity-60 hover:text-white text-sm">
+                    Limpiar todo
+                </button>
+            </div>
+            
+            <div id="notifications-list-legacy" class="space-y-3 max-h-80 overflow-y-auto">
+                <!-- Las notificaciones se cargan dinámicamente desde JavaScript -->
+                <div class="text-center py-8">
+                    <i class="fas fa-bell text-white text-opacity-40 text-4xl mb-3"></i>
+                    <p class="text-white text-opacity-60">No hay notificaciones nuevas</p>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-white border-opacity-20">
+                <button onclick="viewAllNotifications()" class="w-full text-center text-blue-400 hover:text-blue-300 text-sm font-medium">
+                    Ver todas las notificaciones
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-hidden">
+            <!-- Login Section -->
+            <div id="login-section" class="h-full flex items-center justify-center p-6">
+                <div class="glass-effect rounded-3xl p-8 w-full max-w-md">
+                    <div class="text-center mb-8">
+                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-rocket text-purple-600 text-3xl"></i>
+                        </div>
+                        <h2 class="text-white text-3xl font-bold mb-2">¡Bienvenido!</h2>
+                        <p class="text-white text-opacity-80">Únete a la revolución Web3</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <button onclick="loginWithWallet()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all hover-scale">
+                            <i class="fas fa-wallet mr-2"></i>
+                            Conectar Wallet
+                        </button>
+                        
+                        <button onclick="loginWithGoogle()" class="w-full bg-white text-gray-800 py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all hover-scale">
+                            <i class="fab fa-google mr-2 text-red-500"></i>
+                            Continuar con Google
+                        </button>
+                        
+                        <div class="text-center">
+                            <span class="text-white text-opacity-60">¿No tienes cuenta? </span>
+                            <button onclick="showRegister()" class="text-yellow-300 font-semibold hover:underline">Regístrate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Register Section -->
+            <div id="register-section" class="h-full flex items-center justify-center p-6 hidden">
+                <div class="glass-effect rounded-3xl p-8 w-full max-w-md">
+                    <div class="text-center mb-6">
+                        <h2 class="text-white text-3xl font-bold mb-2">Crear Cuenta</h2>
+                        <p class="text-white text-opacity-80">Únete a nuestra comunidad</p>
+                    </div>
+                    
+                    <form onsubmit="handleRegister(event)" class="space-y-4">
+                        <div>
+                            <label for="username" class="block text-white text-sm font-medium mb-2">Nombre de usuario</label>
+                            <input type="text" id="username" class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="Tu nombre único" required>
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-white text-sm font-medium mb-2">Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-yellow-300" placeholder="tu@email.com" required>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-gradient-to-r from-green-400 to-blue-500 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all hover-scale">
+                            <i class="fas fa-user-plus mr-2"></i>
+                            Crear Cuenta
+                        </button>
+                        
+                        <div class="text-center">
+                            <span class="text-white text-opacity-60">¿Ya tienes cuenta? </span>
+                            <button type="button" onclick="showLogin()" class="text-yellow-300 font-semibold hover:underline">Inicia sesión</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Home Section -->
+            <div id="home-section" class="h-full p-4 overflow-y-auto hidden relative">
+                <!-- Stories -->
+                <div class="mb-6">
+                    <div id="stories-container" class="flex space-x-4 overflow-x-auto pb-2">
+                        <div class="flex-shrink-0 text-center cursor-pointer" onclick="openStoryUpload()">
+                            <div class="story-ring rounded-full">
+                                <div class="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center hover:bg-gray-400 transition-colors">
+                                    <i class="fas fa-plus text-gray-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-white text-xs mt-1">Tu historia</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feed -->
+                <div id="home-feed" class="space-y-6">
+                    <!-- Posts will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Explore Section -->
+            <div id="explore-section" class="h-full p-4 overflow-y-auto hidden">
+                <div class="mb-6">
+                    <h2 class="text-white text-2xl font-bold mb-4">Explorar</h2>
+                    
+                    <!-- Trending Hashtags -->
+                    <div class="mb-6">
+                        <h3 class="text-white text-lg font-semibold mb-3">Hashtags Trending</h3>
+                        <div id="trending-hashtags" class="flex flex-wrap gap-2">
+                            <!-- Trending hashtags will be loaded here -->
+                            <div class="text-center py-4 w-full">
+                                <i class="fas fa-hashtag text-white text-opacity-40 text-2xl mb-2"></i>
+                                <p class="text-white text-opacity-60 text-sm">Cargando hashtags populares...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Trending Posts -->
+                    <div class="mb-6">
+                        <h3 class="text-white text-lg font-semibold mb-3">Posts Populares</h3>
+                        <div id="trending-posts" class="space-y-4">
+                            <!-- Trending posts will be loaded here -->
+                            <div class="text-center py-8 glass-effect rounded-xl">
+                                <i class="fas fa-fire text-white text-opacity-40 text-3xl mb-2"></i>
+                                <p class="text-white text-opacity-60">Cargando posts trending...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Suggested Users (temporarily disabled) -->
+                    <div class="mb-6 hidden">
+                        <h3 class="text-white text-lg font-semibold mb-3">Usuarios Sugeridos</h3>
+                        <div id="suggested-users" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crypto Market Section -->
+            <div id="crypto-section" class="h-full p-4 overflow-y-auto hidden">
+                <div class="mb-6">
+                    <h2 class="text-white text-2xl font-bold mb-4">Mercado Crypto (Datos en Vivo)</h2>
+
+                    <!-- Nuevo: Market Overview + Watchlist -->
+                    <div id="crypto-market-ui">
+                        <!-- Overview cards -->
+                        <div id="crypto-overview" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="glass-effect rounded-xl p-4">
+                                <div class="text-white text-sm opacity-70">Market Cap</div>
+                                <div id="global-market-cap" class="text-white text-2xl font-bold mt-1">--</div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4">
+                                <div class="text-white text-sm opacity-70">Volumen 24h</div>
+                                <div id="global-volume" class="text-white text-2xl font-bold mt-1">--</div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4">
+                                <div class="text-white text-sm opacity-70">Dominancia BTC</div>
+                                <div id="global-btc-dominance" class="text-white text-2xl font-bold mt-1">--</div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary: Fear&Greed + Fees -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div class="glass-effect rounded-xl p-4 flex items-center justify-between">
+                                <div>
+                                    <div class="text-white text-sm opacity-70">Fear & Greed</div>
+                                    <div id="fear-greed-value" class="text-white text-3xl font-bold mt-1">--</div>
+                                    <div id="fear-greed-label" class="text-white text-opacity-60 text-sm">--</div>
+                                </div>
+                                <div class="w-20 h-20 rounded-full bg-white bg-opacity-10 flex items-center justify-center">
+                                    <span id="fear-greed-badge" class="text-white text-xl">--</span>
+                                </div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4">
+                                <div class="text-white text-sm opacity-70 mb-2">Bitcoin Fees (sat/vB)</div>
+                                <div class="grid grid-cols-2 gap-2 text-white">
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-2">
+                                        <div class="text-xs opacity-70">Rápida</div>
+                                        <div id="fee-fast" class="text-lg font-semibold">--</div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-2">
+                                        <div class="text-xs opacity-70">30 min</div>
+                                        <div id="fee-30m" class="text-lg font-semibold">--</div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-2">
+                                        <div class="text-xs opacity-70">1 hora</div>
+                                        <div id="fee-1h" class="text-lg font-semibold">--</div>
+                                    </div>
+                                    <div class="bg-white bg-opacity-10 rounded-lg p-2">
+                                        <div class="text-xs opacity-70">Mínima</div>
+                                        <div id="fee-min" class="text-lg font-semibold">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Watchlist -->
+                        <div class="glass-effect rounded-xl p-4 mb-6">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-white text-lg font-semibold">Watchlist</h3>
+                                <div class="text-white text-xs opacity-60">Fuente: CoinGecko (fallback CoinCap)</div>
+                            </div>
+                            <div id="crypto-watchlist" class="space-y-3">
+                                <div class="text-center py-4 text-white text-opacity-60">Cargando...</div>
+                            </div>
+                        </div>
+
+                        <!-- Top movers & Trending -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                            <div class="glass-effect rounded-xl p-4">
+                                <h3 class="text-white text-lg font-semibold mb-3">Top Gainers 24h</h3>
+                                <div id="crypto-top-gainers" class="space-y-2">
+                                    <div class="text-center py-3 text-white text-opacity-60">Cargando...</div>
+                                </div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4">
+                                <h3 class="text-white text-lg font-semibold mb-3">Top Losers 24h</h3>
+                                <div id="crypto-top-losers" class="space-y-2">
+                                    <div class="text-center py-3 text-white text-opacity-60">Cargando...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                            <div class="glass-effect rounded-xl p-4">
+                                <h3 class="text-white text-lg font-semibold mb-3">Trending</h3>
+                                <div id="crypto-trending" class="flex flex-wrap gap-2">
+                                    <span class="text-white text-opacity-60 text-sm">Cargando...</span>
+                                </div>
+                            </div>
+                            <div class="glass-effect rounded-xl p-4">
+                                <h3 class="text-white text-lg font-semibold mb-3">Exchanges</h3>
+                                <div id="crypto-exchanges" class="grid grid-cols-2 gap-3">
+                                    <div class="text-white text-opacity-60 text-sm">Cargando...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bloque legacy oculto (se mantiene como respaldo) -->
+                    <div id="crypto-legacy-card" class="glass-effect rounded-xl p-6 mb-6 hidden">
+                        <h3 class="text-white text-lg font-semibold mb-4">Precios en tiempo real (CoinGecko API)</h3>
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th class="text-pink-400 pb-2">Criptomoneda</th>
+                                    <th class="text-pink-400 pb-2">Precio (USD)</th>
+                                    <th class="text-pink-400 pb-2">Cambio 24h</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crypto-prices-table">
+                                <tr>
+                                    <td class="text-white">Bitcoin (BTC)</td>
+                                    <td class="text-white" id="btc-price-live">Cargando...</td>
+                                    <td class="text-white" id="btc-change-live">Cargando...</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-white">Ethereum (ETH)</td>
+                                    <td class="text-white" id="eth-price-live">Cargando...</td>
+                                    <td class="text-white" id="eth-change-live">Cargando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="text-xs text-white text-opacity-60 mt-4">Fuente: <a href="https://www.coingecko.com/api/documentation" target="_blank" class="text-blue-400 underline">CoinGecko API</a></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crypto Chart Modal -->
+            <div id="crypto-chart-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="glass-effect rounded-2xl p-6 w-full max-w-6xl mx-4 h-5/6 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center">
+                            <div id="chart-crypto-icon" class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="fab fa-bitcoin text-white"></i>
+                            </div>
+                            <div>
+                                <h3 id="chart-crypto-name" class="text-white text-xl font-bold">Bitcoin</h3>
+                                <p id="chart-crypto-symbol" class="text-white text-opacity-60">BTC/USD</p>
+                            </div>
+                        </div>
+                        <button onclick="hideCryptoChart()" class="text-white hover:text-gray-300">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Price Info -->
+                    <div class="flex items-center space-x-6 mb-4">
+                        <div>
+                            <div id="chart-current-price" class="text-white text-3xl font-bold">$43,250.12</div>
+                            <div id="chart-price-change" class="text-green-400 text-lg">+2.45% (+$1,034.56)</div>
+                        </div>
+                    </div>
+
+                    <!-- TradingView Chart Container -->
+                    <div class="flex-1 bg-gray-900 rounded-xl overflow-hidden mb-4">
+                        <div id="tradingview-chart" class="w-full h-full"></div>
+                    </div>
+
+                    <!-- Chart Stats -->
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="text-center glass-effect rounded-lg p-3">
+                            <div class="text-white text-opacity-60 text-xs mb-1">Máximo 24h</div>
+                            <div id="chart-high-24h" class="text-white font-semibold text-lg">$44,123.45</div>
+                        </div>
+                        <div class="text-center glass-effect rounded-lg p-3">
+                            <div class="text-white text-opacity-60 text-xs mb-1">Mínimo 24h</div>
+                            <div id="chart-low-24h" class="text-white font-semibold text-lg">$42,567.89</div>
+                        </div>
+                        <div class="text-center glass-effect rounded-lg p-3">
+                            <div class="text-white text-opacity-60 text-xs mb-1">Volumen 24h</div>
+                            <div id="chart-volume-24h" class="text-white font-semibold text-lg">$28.5B</div>
+                        </div>
+                        <div class="text-center glass-effect rounded-lg p-3">
+                            <div class="text-white text-opacity-60 text-xs mb-1">Cap. Mercado</div>
+                            <div id="chart-market-cap" class="text-white font-semibold text-lg">$847.2B</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- News Section -->
+            <div id="news-section" class="h-full flex flex-col hidden">
+                <!-- Breaking News Banner - Fixed at top -->
+                <div id="breaking-news-banner" class="breaking-news-banner breaking-news-sticky hidden">
+                    <!-- Breaking news content will be loaded here -->
+                </div>
+                
+                <!-- Scrollable Content -->
+                <div class="flex-1 overflow-y-auto">
+                    <!-- Header -->
+                    <div class="glass-effect p-4 mb-4 sticky top-0 z-10">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-white text-2xl font-bold">📰 News Feed</h2>
+                            <div class="flex space-x-2">
+                                <button onclick="refreshNews()" class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white hover:bg-opacity-30 transition-all">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    
+                    <!-- Category Filter - Multi-select -->
+                    <div class="news-categories-wrapper mb-3">
+                        <!-- Mobile: Hamburger Menu -->
+                        <div class="md:hidden">
+                            <button onclick="toggleCategoriesMenu()" class="w-full flex items-center justify-between px-4 py-3 bg-white bg-opacity-10 rounded-lg text-white">
+                                <span class="flex items-center gap-2">
+                                    <i class="fas fa-bars"></i>
+                                    <span id="selected-category-text">🌐 All</span>
+                                </span>
+                                <i class="fas fa-chevron-down transition-transform" id="categories-chevron"></i>
+                            </button>
+                            
+                            <div id="categories-dropdown" class="hidden mt-2 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg overflow-hidden">
+                                <button onclick="filterNewsByCategory('all')" data-category="all" class="news-category-btn-mobile active w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    🌐 All
+                                </button>
+                                <button onclick="filterNewsByCategory('crypto')" data-category="crypto" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    🪙 Crypto
+                                </button>
+                                <button onclick="filterNewsByCategory('tech')" data-category="tech" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    💻 Tech
+                                </button>
+                                <button onclick="filterNewsByCategory('space')" data-category="space" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    🚀 Space
+                                </button>
+                                <button onclick="filterNewsByCategory('business')" data-category="business" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    💼 Business
+                                </button>
+                                <button onclick="filterNewsByCategory('science')" data-category="science" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all border-b border-white border-opacity-10">
+                                    🔬 Science
+                                </button>
+                                <button onclick="filterNewsByCategory('ai')" data-category="ai" class="news-category-btn-mobile w-full text-left px-4 py-3 text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                                    🤖 AI
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Desktop: Horizontal Scroll -->
+                        <div class="hidden md:flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+                            <button onclick="filterNewsByCategory('all')" data-category="all" class="news-category-btn active px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                🌐 All
+                            </button>
+                            <button onclick="filterNewsByCategory('crypto')" data-category="crypto" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                🪙 Crypto
+                            </button>
+                            <button onclick="filterNewsByCategory('tech')" data-category="tech" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                💻 Tech
+                            </button>
+                            <button onclick="filterNewsByCategory('space')" data-category="space" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                🚀 Space
+                            </button>
+                            <button onclick="filterNewsByCategory('business')" data-category="business" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                💼 Business
+                            </button>
+                            <button onclick="filterNewsByCategory('science')" data-category="science" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                🔬 Science
+                            </button>
+                            <button onclick="filterNewsByCategory('ai')" data-category="ai" class="news-category-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap">
+                                🤖 AI
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Trending Topics Bar -->
+                    <div id="trending-section" class="hidden">
+                        <div class="text-white text-sm font-semibold mb-2 flex items-center">
+                            <i class="fas fa-fire text-orange-400 mr-2"></i>
+                            Trending Now
+                        </div>
+                        <div id="trending-topics-bar" class="flex space-x-2 overflow-x-auto pb-2 hide-scrollbar">
+                            <!-- Trending topics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    <!-- Featured News -->
+                    <div id="featured-news" class="mb-6 hidden">
+                        <h3 class="text-white text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-star text-yellow-400 mr-2"></i>
+                            Featured
+                        </h3>
+                        <div id="featured-news-container" class="space-y-3">
+                            <!-- Featured news will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Latest News -->
+                    <div class="mb-6">
+                        <h3 class="text-white text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-newspaper text-blue-400 mr-2"></i>
+                            Latest News
+                        </h3>
+                        
+                        <!-- Loading indicator -->
+                        <div id="news-loading" class="text-center py-12">
+                            <div class="inline-block">
+                                <i class="fas fa-newspaper text-white text-opacity-20 text-5xl mb-4 animate-pulse"></i>
+                                <p class="text-white text-opacity-70">Loading news from multiple sources...</p>
+                                <p class="text-white text-opacity-50 text-sm mt-2">Crypto · Tech · Space · Business</p>
+                            </div>
+                        </div>
+                        
+                        <!-- News Container -->
+                        <div id="news-container" class="space-y-4 hidden">
+                            <!-- News items will be loaded here dynamically -->
+                        </div>
+                        
+                        <!-- Error message -->
+                        <div id="news-error" class="glass-effect rounded-xl p-8 text-center hidden">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-3"></i>
+                            <p class="text-white text-lg font-semibold mb-2">Unable to load news</p>
+                            <p class="text-white text-opacity-60 text-sm mb-4">Please check your connection</p>
+                            <button onclick="loadCryptoNews()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-full hover:opacity-90 transition-all">
+                                <i class="fas fa-redo mr-2"></i>
+                                Retry
+                            </button>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="news-empty" class="glass-effect rounded-xl p-8 text-center hidden">
+                            <i class="fas fa-newspaper text-white text-opacity-20 text-5xl mb-3"></i>
+                            <p class="text-white text-opacity-60">No news found for selected filters</p>
+                            <button onclick="filterNewsByCategory('all')" class="mt-4 text-blue-400 hover:text-blue-300">
+                                Reset filters
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Load More Button -->
+                    <div id="news-load-more" class="text-center hidden">
+                        <button onclick="loadMoreNews()" class="glass-effect px-6 py-3 rounded-full text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-chevron-down mr-2"></i>
+                            Load more news
+                        </button>
+                    </div>
+                </div>
+                </div> <!-- End scrollable content -->
+            </div>
+
+            <!-- Chat Section -->
+            <div id="chat-section" class="h-full flex flex-col hidden">
+                <!-- Chat Header -->
+                <div class="glass-effect p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-white text-xl font-bold">Mensajes</h2>
+                        <div class="flex space-x-2">
+                            <button onclick="showSearchUsers()" class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white hover:bg-opacity-30 transition-all">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button onclick="showNewChat()" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-all">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Tabs -->
+                    <div class="flex space-x-1 bg-white bg-opacity-10 rounded-lg p-1">
+                        <button onclick="showChatTab('chats')" class="chat-tab-btn flex-1 py-2 px-4 rounded-md text-white text-sm font-medium bg-white bg-opacity-20 transition-all">
+                            Chats
+                        </button>
+                        <button onclick="showChatTab('archived')" class="chat-tab-btn flex-1 py-2 px-4 rounded-md text-white text-sm font-medium hover:bg-white hover:bg-opacity-10 transition-all">
+                            Archivados
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search Users Modal -->
+                <div id="search-users-modal" class="fixed inset-0 modal-backdrop-enhanced flex items-center justify-center hidden" style="z-index: 10500 !important;">
+                    <div class="glass-effect modal-enhanced modal-scrollbar rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh]" style="z-index: 10501 !important;">
+                        <div class="flex justify-between items-center mb-6 modal-header-enhanced">
+                            <h3 class="text-white text-xl font-bold">Buscar Usuarios</h3>
+                            <button onclick="hideSearchUsers()" class="text-white modal-close-enhanced hover:text-gray-300 transition-colors">
+                                <i class="fas fa-times text-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4 modal-form-group">
+                            <input type="text" id="user-search-input" placeholder="Buscar por nombre de usuario..." class="w-full modal-input-enhanced px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all" oninput="searchUsers()">
+                        </div>
+                        
+                        <div id="search-results" class="space-y-2 max-h-64 overflow-y-auto search-results-enhanced scrollbar-thin scrollbar-thumb-white scrollbar-thumb-opacity-20">
+                            <!-- Search results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- New Chat Modal -->
+                <div id="new-chat-modal" class="fixed inset-0 modal-backdrop-enhanced flex items-center justify-center hidden" style="z-index: 10500 !important;">
+                    <div class="glass-effect modal-enhanced modal-scrollbar rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh]" style="z-index: 10501 !important;">
+                        <div class="flex justify-between items-center mb-6 modal-header-enhanced">
+                            <h3 class="text-white text-xl font-bold">Nuevo Chat</h3>
+                            <button onclick="hideNewChat()" class="text-white modal-close-enhanced hover:text-gray-300 transition-colors">
+                                <i class="fas fa-times text-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-4 modal-form-group">
+                            <input type="text" id="following-search-input" placeholder="Buscar en tus seguidos..." class="w-full modal-input-enhanced px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all" oninput="searchFollowing()">
+                        </div>
+                        
+                        <div id="following-results" class="space-y-2 max-h-64 overflow-y-auto search-results-enhanced scrollbar-thin scrollbar-thumb-white scrollbar-thumb-opacity-20">
+                            <!-- Following results will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Lists Container -->
+                <div class="flex-1 overflow-hidden">
+                    <!-- Active Chats -->
+                    <div id="chats-list" class="h-full overflow-y-auto p-4">
+                        <div id="chats-container" class="space-y-3">
+                            <!-- Chats will be loaded here dynamically -->
+                            <div class="text-center py-12">
+                                <i class="fas fa-comments text-white text-opacity-30 text-5xl mb-3"></i>
+                                <p class="text-white text-opacity-60">No hay chats aún</p>
+                                <p class="text-white text-opacity-40 text-sm mt-1">Sigue a otros usuarios para comenzar a chatear</p>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Archived Chats -->
+                    <div id="archived-list" class="h-full overflow-y-auto p-4 hidden">
+                        <div id="archived-container" class="space-y-3">
+                            <!-- Archived chats will be loaded here -->
+                            <div class="text-center py-12">
+                                <i class="fas fa-archive text-white text-opacity-30 text-5xl mb-3"></i>
+                                <p class="text-white text-opacity-60">No hay chats archivados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Chat -->
+            <div id="individual-chat" class="h-full flex-col hidden">
+                <!-- Chat Header -->
+                <div class="glass-effect p-4 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <button onclick="backToChats()" class="text-white mr-3">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div id="chat-avatar" class="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full mr-3 flex items-center justify-center">
+                            <span class="text-white font-bold">?</span>
+                        </div>
+                        <div>
+                            <h3 id="chat-name" class="text-white font-semibold">Selecciona un chat</h3>
+                            <p id="chat-status" class="text-white text-opacity-60 text-sm"></p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="showChatOptions()" class="text-white hover:text-gray-300">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Options Menu -->
+                <div id="chat-options-menu" class="absolute top-16 right-4 glass-effect rounded-xl p-2 z-50 hidden">
+                    <button onclick="archiveCurrentChat()" class="w-full text-left px-4 py-2 text-white hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                        <i class="fas fa-archive mr-2"></i>
+                        Archivar chat
+                    </button>
+                    <button onclick="blockUser()" class="w-full text-left px-4 py-2 text-red-400 hover:bg-white hover:bg-opacity-10 rounded-lg transition-all">
+                        <i class="fas fa-ban mr-2"></i>
+                        Bloquear usuario
+                    </button>
+                </div>
+
+                <!-- Messages -->
+                <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-3">
+                    <div class="text-center py-12">
+                        <i class="fas fa-comment-dots text-white text-opacity-30 text-5xl mb-3"></i>
+                        <p class="text-white text-opacity-60">No hay mensajes aún</p>
+                        <p class="text-white text-opacity-40 text-sm mt-1">Envía el primer mensaje</p>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <div class="glass-effect p-4">
+                    <form onsubmit="sendMessage(event)" class="flex items-center space-x-3">
+                        <input type="text" id="message-input" placeholder="Escribe un mensaje..." class="flex-1 px-4 py-2 rounded-full bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button type="submit" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+
+
+            <!-- Profile Section -->
+            <div id="profile-section" class="h-full p-4 overflow-y-auto hidden">
+                <div class="mb-6">
+                    <!-- Profile Header -->
+                    <div class="profile-gradient rounded-2xl p-6 mb-6 text-center relative">
+                        <div class="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center relative group cursor-pointer" onclick="changeProfilePhoto()">
+                            <span class="text-white text-3xl font-bold">U</span>
+                            <div class="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-camera text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h2 id="profile-name" class="text-gray-800 text-2xl font-bold mb-2">Cargando...</h2>
+                        <p id="profile-bio" class="text-gray-600 mb-4"></p>
+                        
+                        <!-- Social Links -->
+                        <div id="profile-social-links" class="flex justify-center space-x-3 mb-4">
+                            <!-- Links will be dynamically added here -->
+                        </div>
+                        
+                        <button onclick="showEditProfile()" class="bg-white text-gray-800 px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all">
+                            Editar Perfil
+                        </button>
+                    </div>
+
+                    <!-- Edit Profile Modal -->
+                    <div id="edit-profile-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" style="z-index: 10500 !important;">
+                        <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto" style="z-index: 10501 !important;">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-white text-xl font-bold">Editar Perfil</h3>
+                                <button onclick="hideEditProfile()" class="text-white hover:text-gray-300 transition-colors">
+                                    <i class="fas fa-times text-lg"></i>
+                                </button>
+                            </div>
+                            <form onsubmit="updateProfile(event)">
+                                <div class="mb-4">
+                                    <label for="edit-name" class="block text-white text-sm font-medium mb-2">Nombre</label>
+                                    <input type="text" id="edit-name" class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 transition-all" value="" placeholder="Tu nombre">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="edit-bio" class="block text-white text-sm font-medium mb-2">Descripción</label>
+                                    <textarea id="edit-bio" class="w-full h-24 px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none transition-all" placeholder="Cuéntanos sobre ti..."></textarea>
+                                </div>
+                                
+                                <!-- Social Links Section -->
+                                <div class="mb-4">
+                                    <h4 class="text-white text-sm font-medium mb-3">Redes Sociales (opcional)</h4>
+                                    
+                                    <div class="mb-3">
+                                        <label for="edit-twitter" class="block text-white text-xs mb-1">
+                                            <i class="fab fa-twitter mr-1"></i> Twitter/X
+                                        </label>
+                                        <input type="text" id="edit-twitter" class="w-full px-4 py-2 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="@tuusuario">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="edit-telegram" class="block text-white text-xs mb-1">
+                                            <i class="fab fa-telegram mr-1"></i> Telegram
+                                        </label>
+                                        <input type="text" id="edit-telegram" class="w-full px-4 py-2 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="@tuusuario">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="edit-website" class="block text-white text-xs mb-1">
+                                            <i class="fas fa-globe mr-1"></i> Sitio Web
+                                        </label>
+                                        <input type="url" id="edit-website" class="w-full px-4 py-2 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="https://...">
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all">
+                                    Guardar Cambios
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Followers/Following Modal -->
+                    <div id="users-list-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                        <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="users-list-title" class="text-white text-xl font-bold">Seguidores</h3>
+                                <button onclick="hideUsersListModal()" class="text-white hover:text-gray-300">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div id="users-list-content" class="overflow-y-auto flex-1 space-y-3">
+                                <!-- Users will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Stats -->
+                    <div id="profile-stats" class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="glass-effect rounded-xl p-4 text-center cursor-pointer hover:bg-white hover:bg-opacity-10 transition-all" onclick="showMyPosts()">
+                            <div class="text-white text-2xl font-bold">0</div>
+                            <div class="text-white text-opacity-60 text-sm">Posts</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4 text-center cursor-pointer hover:bg-white hover:bg-opacity-10 transition-all" onclick="showFollowers()">
+                            <div class="text-white text-2xl font-bold">0</div>
+                            <div class="text-white text-opacity-60 text-sm">Seguidores</div>
+                        </div>
+                        <div class="glass-effect rounded-xl p-4 text-center cursor-pointer hover:bg-white hover:bg-opacity-10 transition-all" onclick="showFollowing()">
+                            <div class="text-white text-2xl font-bold">0</div>
+                            <div class="text-white text-opacity-60 text-sm">Siguiendo</div>
+                        </div>
+                    </div>
+
+                    <!-- Add Crypto Modal -->
+                    <div id="add-crypto-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                        <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-white text-xl font-bold">Agregar Cripto</h3>
+                                <button onclick="hideAddCryptoModal()" class="text-white hover:text-gray-300">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="mb-4">
+                                <input type="text" 
+                                       id="crypto-search" 
+                                       placeholder="Buscar criptomoneda..." 
+                                       class="w-full px-4 py-3 rounded-xl bg-white bg-opacity-20 text-white placeholder-white placeholder-opacity-60 border border-white border-opacity-30 focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                       oninput="searchCryptos(this.value)">
+                            </div>
+                            <div id="crypto-search-results" class="space-y-2 max-h-96 overflow-y-auto">
+                                <!-- Search results will appear here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Crypto Portfolio -->
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-white text-lg font-bold">Portfolio Crypto</h3>
+                            <button onclick="showAddCryptoModal()" class="text-pink-400 hover:text-pink-300">
+                                <i class="fas fa-plus-circle"></i>
+                            </button>
+                        </div>
+                        <div id="crypto-portfolio" class="space-y-3">
+                            <!-- Crypto items will be loaded here -->
+                            <div class="text-center py-6 glass-effect rounded-xl">
+                                <i class="fas fa-coins text-white text-opacity-40 text-3xl mb-2"></i>
+                                <p class="text-white text-opacity-60 text-sm">Agrega tus criptomonedas favoritas</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Options -->
+                    <div class="space-y-3">
+                        <button class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-cog mr-3 text-xl"></i>
+                            <span>Configuración</span>
+                        </button>
+                        <button class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-wallet mr-3 text-xl"></i>
+                            <span>Mi Wallet</span>
+                        </button>
+                        <button class="w-full glass-effect rounded-xl p-4 flex items-center text-white hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-shield-alt mr-3 text-xl"></i>
+                            <span>Privacidad</span>
+                        </button>
+                        <button onclick="logout()" class="w-full glass-effect rounded-xl p-4 flex items-center text-red-400 hover:bg-white hover:bg-opacity-10 transition-all">
+                            <i class="fas fa-sign-out-alt mr-3 text-xl"></i>
+                            <span>Cerrar Sesión</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Create Post Button (Global) -->
+        <button onclick="showCreateHomePost()" class="fixed bottom-20 right-4 w-14 h-14 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all hover-scale" style="z-index: 9600 !important;" id="create-post-fab">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
+    </div>
+
+    <!-- JavaScript Files -->
+    <!-- Cloudinary Upload Widget -->
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    
+    <!-- Global Functions Wrapper (loads first to prevent onclick errors) -->
+    <script src="src/js/global-functions.js"></script>
+    
+    <!-- Dropdown Manager (loads early for immediate onclick access) -->
+    <script src="src/js/modules/dropdown-manager.js"></script>
+    
+    <!-- Cloudinary Configuration -->
+    <script src="src/js/cloudinary-config.js?v=4k"></script>
+    
+    <!-- Firebase Configuration (ES6 Module) -->
+    <script type="module" src="src/js/firebase-config.js"></script>
+    <script type="module" src="src/js/modules/auth.js"></script>
+    
+    <!-- Story Upload Fix (after Firebase) -->
+    <script src="story-upload-fix.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="src/js/modules/notifications.js"></script>
+    <!-- Nuevo UI de Mercado Crypto (ESM) -->
+    <script type="module" src="src/js/modules/crypto-market-ui.js"></script>
+    <!-- Módulo existente (gráficos de ejemplo, se mantiene) -->
+    <script src="src/js/modules/crypto.js"></script>
+    <script src="src/js/modules/chat.js"></script>
+    <script src="src/js/modules/profile.js?v=100mb"></script>
+    <script src="src/js/modules/modal-manager.js"></script>
+    <script src="src/js/modules/news-api-manager.js"></script>
+    <script src="src/js/modules/news.js"></script>
+    <script type="module" src="src/js/app.js?v=4k"></script>
+    
+    <!-- Additional Modules -->
+    <script type="module">
+        // Initialize modules after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM loaded, initializing modules...');
+            
+            // Ensure currentSection is defined
+            if (typeof window.currentSection === 'undefined') {
+                window.currentSection = 'home'; // Default value
+            }
+            
+            // Load search module
+            setTimeout(async () => {
+                try {
+                    const searchModule = await import('./src/js/modules/search.js');
+                    console.log('✅ Search module loaded');
+                    
+                    // Initialize explore content if on explore section
+                    if (window.currentSection === 'explore') {
+                        searchModule.loadExploreContent?.();
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading search module:', error);
+                }
+            }, 1000);
+            
+            // Load features module
+            setTimeout(async () => {
+                try {
+                    const featuresModule = await import('./src/js/modules/features.js');
+                    console.log('✅ Features module loaded');
+                    
+                    // Initialize theme
+                    featuresModule.initializeTheme?.();
+                    
+                    // Load stories if on home
+                    if (window.currentSection === 'home') {
+                        featuresModule.loadStories?.();
+                    }
+                } catch (error) {
+                    console.error('❌ Error loading features module:', error);
+                }
+            }, 1100);
+        });
+        
+        // Also try loading when window loads (fallback)
+        window.addEventListener('load', function() {
+            console.log('🔄 Window loaded, checking modules...');
+            
+            // Check if functions are available, if not reload modules
+            setTimeout(() => {
+                if (typeof window.openStoryUpload === 'undefined') {
+                    console.log('⚠️ Story functions missing, reloading features...');
+                    import('./src/js/modules/features.js').catch(console.error);
+                }
+                
+                if (typeof window.loadExploreContent === 'undefined') {
+                    console.log('⚠️ Search functions missing, reloading search...');
+                    import('./src/js/modules/search.js').catch(console.error);
+                }
+            }, 2000);
+        });
+    </script>
+    
+    <!-- Debug Script - Remove in production -->
+    <script>
+        // Debug function to check if modules are loaded
+        window.debugModules = function() {
+            console.log('🔍 MODULE DEBUG:');
+            
+            // Check features functions
+            const featureFunctions = [
+                'toggleTheme', 'openStoryUpload', 'hideStoryUpload', 'uploadStory', 
+                'closeStoryViewer', 'nextStory', 'previousStory', 'loadStories',
+                'showShareModal', 'hideShareModal', 'repostContent', 'copyPostLink'
+            ];
+            
+            // Check search functions  
+            const searchFunctions = [
+                'loadExploreContent', 'filterByHashtag', 'handleGlobalSearch', 'toggleFollow'
+            ];
+            
+            // Check other functions
+            const otherFunctions = [
+                'toggleNotifications', 'showSection', 'toggleLike', 'showComments', 'previewStoryFile'
+            ];
+            
+            console.log('📱 Features functions:');
+            featureFunctions.forEach(fn => {
+                const exists = typeof window[fn] !== 'undefined';
+                console.log(`${exists ? '✅' : '❌'} ${fn}: ${exists ? 'loaded' : 'missing'}`);
+            });
+            
+            console.log('🔍 Search functions:');
+            searchFunctions.forEach(fn => {
+                const exists = typeof window[fn] !== 'undefined';
+                console.log(`${exists ? '✅' : '❌'} ${fn}: ${exists ? 'loaded' : 'missing'}`);
+            });
+            
+            console.log('🔧 Other functions:');
+            otherFunctions.forEach(fn => {
+                const exists = typeof window[fn] !== 'undefined';
+                console.log(`${exists ? '✅' : '❌'} ${fn}: ${exists ? 'loaded' : 'missing'}`);
+            });
+            
+            // Check DOM elements
+            const elements = [
+                'story-upload-modal', 'share-modal', 'theme-toggle-btn', 'suggested-users', 'stories-container'
+            ];
+            
+            console.log('🎯 DOM elements:');
+            elements.forEach(id => {
+                const exists = document.getElementById(id) !== null;
+                console.log(`${exists ? '✅' : '❌'} #${id}: ${exists ? 'found' : 'missing'}`);
+            });
+            
+            console.log('🔄 Current section:', window.currentSection);
+        };
+        
+        // Manual story reload function for debugging
+        window.forceReloadStories = function() {
+            console.log('🔄 Force reloading stories...');
+            if (typeof window.loadStories === 'function') {
+                window.loadStories();
+            } else {
+                console.error('❌ loadStories function not available');
+            }
+        };
+        
+        // Test story upload function
+        window.testStoryUpload = function() {
+            console.log('🧪 Testing story upload function...');
+            console.log('uploadStory:', typeof window.uploadStory);
+            console.log('uploadStoryFixed:', typeof window.uploadStoryFixed);
+            console.log('debugFirebase:', typeof window.debugFirebase);
+            
+            // Run Firebase diagnosis
+            if (typeof window.debugFirebase === 'function') {
+                window.debugFirebase();
+            }
+        };
+        
+        // Auto-run debug after 3 seconds
+        setTimeout(() => {
+            console.log('🚀 Running automatic module check...');
+            window.debugModules();
+            
+            // Force load stories if missing and on home
+            if (window.currentSection === 'home' && typeof window.loadStories === 'function') {
+                const container = document.getElementById('stories-container');
+                if (container) {
+                    const storyItems = container.querySelectorAll('.story-item');
+                    console.log('🔍 Found story items:', storyItems.length);
+                    
+                    if (storyItems.length === 0) {
+                        console.log('🔄 No stories visible, reloading...');
+                        window.loadStories();
+                    }
+                } else {
+                    console.error('❌ Stories container not found');
+                }
+            }
+            
+            // Additional check for likes functionality
+            console.log('🔍 Like function check:', {
+                toggleLike: typeof window.toggleLike,
+                toggleHashtagPostLike: typeof window.toggleHashtagPostLike,
+                currentUser: !!window.currentUser,
+                authCurrentUser: !!(window.auth && window.auth.currentUser),
+                localStorageUser: !!localStorage.getItem('currentUser')
+            });
+        }, 3000);
+    </script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            // Detectar si estamos en GitHub Pages o local
+            const swPath = window.location.hostname === 'diegodevxd.github.io' 
+                ? '/nitedred/sw.js' 
+                : '/sw.js';
+            
+            navigator.serviceWorker.register(swPath)
+                .then(registration => {
+                    console.log('✅ Service Worker registrado:', registration);
+                    
+                    // Solicitar permisos de notificación en móviles
+                    if ('Notification' in window && Notification.permission === 'default') {
+                        // En móviles, debe ser acción del usuario
+                        document.addEventListener('click', function requestNotificationPermission() {
+                            Notification.requestPermission().then(permission => {
+                                console.log('📱 Permiso de notificación:', permission);
+                                if (permission === 'granted') {
+                                    console.log('✅ Notificaciones activadas en móvil');
+                                }
+                            });
+                            // Solo pedir una vez
+                            document.removeEventListener('click', requestNotificationPermission);
+                        }, { once: true });
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error registrando Service Worker:', error);
+                });
+        } else {
+            console.log('⚠️ Service Workers no soportados en este navegador');
+        }
+    </script>
+    
+    <!-- Fix para el buscador -->
+    <script src="search-fix.js"></script>
+    
+    <!-- Sistema de reacciones mejorado -->
+    <script src="reactions-system.js"></script>
+    
+    <!-- Sincronizador de usuarios -->
+    <script src="user-sync.js"></script>
+    
+    <!-- Limpiador de datos corruptos -->
+    <script src="data-cleaner.js"></script>
+    
+    <!-- Fix de layout y z-index -->
+    <script src="layout-fix.js"></script>
+    
+    <!-- Debug para elementos superpuestos -->
+    <script src="debug-overlapping.js"></script>
+    
+    <!-- Script de debug (comentar en producción) -->
+    <!-- <script src="debug-search.js"></script> -->
+</body>
+</html>

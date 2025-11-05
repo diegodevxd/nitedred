@@ -1,0 +1,306 @@
+/* Dropdown Overlays for Search and Notifications */
+
+/* Search Dropdown */
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    margin-top: 8px;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 9600;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.search-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.search-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-dropdown::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.search-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+/* Notifications Dropdown */
+.notifications-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    margin-top: 8px;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 9600;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.notifications-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.notifications-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-dropdown::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.notifications-dropdown::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+/* Search Results Styling */
+.search-result-item {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(168, 85, 247, 0.3);
+    transform: translateX(4px);
+}
+
+.search-result-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Search Categories */
+.search-categories {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-category-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.search-category-btn.active {
+    background: rgba(168, 85, 247, 0.8);
+    color: white;
+    border-color: rgba(168, 85, 247, 1);
+}
+
+.search-category-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Notification Items */
+.notification-item {
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.notification-item.unread {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: rgba(168, 85, 247, 0.3);
+}
+
+.notification-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Search Loading State */
+.search-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-loading::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid rgba(168, 85, 247, 0.8);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Empty States */
+.search-empty, .notifications-empty {
+    text-align: center;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-empty i, .notifications-empty i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Quick Actions */
+.search-quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.search-quick-action {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-quick-action:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* Notification Header */
+.notifications-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notifications-title {
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.mark-all-read-btn {
+    color: rgba(168, 85, 247, 0.8);
+    font-size: 12px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.mark-all-read-btn:hover {
+    color: rgba(168, 85, 247, 1);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .search-dropdown {
+        position: fixed;
+        top: 80px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+    }
+    
+    .notifications-dropdown {
+        position: fixed;
+        top: 80px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+    }
+}
+
+/* Animation for dropdown appearance */
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.search-dropdown.active,
+.notifications-dropdown.active {
+    animation: dropdownSlideIn 0.3s ease-out;
+}
+
+/* Focus states for accessibility */
+.search-dropdown:focus,
+.notifications-dropdown:focus {
+    outline: 2px solid rgba(168, 85, 247, 0.5);
+    outline-offset: 2px;
+}
+
+/* Backdrop when dropdowns are active */
+.dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    background: transparent;
+}
+
+/* Header input focus enhancement */
+#global-search-input:focus {
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
+}
