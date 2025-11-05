@@ -10,10 +10,10 @@
         ".write": "auth != null && auth.uid == $uid",
         "chats": {
           ".read": "auth != null && auth.uid == $uid",
-          ".write": "auth != null && auth.uid == $uid",
-          "$chatId": {
+          ".write": "auth != null",
+          "$chatUserId": {
             ".read": "auth != null && auth.uid == $uid",
-            ".write": "auth != null && auth.uid == $uid"
+            ".write": "auth != null"
           }
         },
         "following": {
